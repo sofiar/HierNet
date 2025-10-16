@@ -1,8 +1,9 @@
 import os
 import random
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Subset, DataLoader, SequentialSampler, WeightedRandomSampler, random_split
 import torch 
 import numpy as np 
+from torchvision import transforms
 from PIL import Image, UnidentifiedImageError
 from collections import Counter
 import copy
@@ -235,6 +236,82 @@ class ImageDataset(Dataset):
             } 
             
         return data_details
+    
+    def split_train_test_val(self, train_prop: float = 0.7, val_prop: float = 0.1, test_prop: float = 0.2, verbose: bool = True):
+
+        """
+        Returns indices corresponding to the train, validation and test subsets of the Dataset.
+
+        Args:
+            trian_prop (float): Proportion of samples to allocate to the train subset.
+            val_prop (float): Proportion of samples to allocate to the validation subset.
+            test_prop (float): Proportion of samples to allocate to the test subset.
+            verbose (bool): Specifies whether to print distributions of subsets.
+        """
+
+        train_split, val_split, test_split = random_split(
+            range(len(self)),
+            lengths = [train_prop, val_prop, test_prop],
+            generator = torch.Generator().manual_seed(self.seed)
+        )
+
+        if verbose:
+            self.print_dataset_details(train_split.indices, 'Train')
+            self.print_dataset_details(val_split.indices, 'Validation')
+            self.print_dataset_details(test_split.indices, 'Test')
+
+        return train_split.indices, val_split.indices, test_split.indices
+    
+    def append_image_transforms(self, image_transforms: transforms.Compose = None, 
+                                replace: bool = False, verbose: bool = False):
+        
+        """
+        Appends image transformations to existing transformation pipeline or replaces.
+        If multiple `ToTensor()` transformations are included in the resulting pipeline, only the last instance is kept.
+        If there are no `ToTensor()` transformations in the resulting pipeline, it is appended.
+
+        Args:
+            image_transforms(transfors.Compose, optional): Iterable of image transformations to append.
+            replace (bool): Specifies whether to replace with or append the above image_transforms.
+            verbose (bool): Specifies whether to print the resulting image transformation pipeline.
+        """
+        
+        if image_transforms is None:
+            if self.image_transforms is None:
+                image_transforms_list = []
+            else: 
+                image_transforms_list = self.image_transforms.transforms
+        else:
+            if replace:
+                image_transforms_list = image_transforms.transforms
+            else:
+                image_transforms_list = self.image_transforms.transforms + image_transforms.transforms
+
+        image_transforms_cleaned = []
+        to_tensor_indices = [i for i, tf in enumerate(image_transforms_list) if isinstance(tf, transforms.ToTensor)]
+
+        if to_tensor_indices:
+            last_idx = to_tensor_indices[-1]
+            image_transforms_cleaned = [tf for i, tf in enumerate(image_transforms_list) if not isinstance(tf, transforms.ToTensor) or i == last_idx]
+        else:
+            image_transforms_cleaned = image_transforms_list + [transforms.ToTensor()]
+
+        self.image_transforms = transforms.Compose(image_transforms_cleaned)
+
+        if verbose:
+            self.print_image_transforms()
+            
+    def print_image_transforms(self):
+
+        """
+        Prints the ordered image transformations applied to the Dataset.
+        """
+
+        print('\nCurrent Image Transform Pipeline:')
+        for tf in self.image_transforms.transforms:
+            print(' ', tf)        
+    
+    
 
 def merge_classes(dataset,classes_to_merge_list,new_names_list):
         
@@ -326,3 +403,6 @@ def merge_classes(dataset,classes_to_merge_list,new_names_list):
                 )
 
     return dataset_copy
+
+
+    
