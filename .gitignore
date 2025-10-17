@@ -4,3 +4,6 @@ __pycache__/
 
 # Ignore results folder
 Models_results/
+
+# Ignore debug notebooks
+baseline_model.ipynb
