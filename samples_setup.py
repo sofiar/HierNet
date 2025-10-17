@@ -309,7 +309,61 @@ class ImageDataset(Dataset):
 
         print('\nCurrent Image Transform Pipeline:')
         for tf in self.image_transforms.transforms:
-            print(' ', tf)        
+            print(' ', tf)    
+            
+    
+    def create_dataloaders(self, batch_size: int, train_indices, val_indices, test_indices,
+                           image_transforms: transforms.Compose = None, transform_val: bool = False, 
+                           train_sample_weights: torch.tensor = None):
+        
+        """
+        Creates the train, validatinon and test DataLoaders required for training a PyTorch model.
+        If `train_sample_weights` is specified, they are supplied to WeightedRandomSampler for the train subset.
+
+        Args:
+            batch_size (int): Sizes of batches to process samples in DataLoader.
+            train_indices (list): Indices corresponding to the train subset of the Dataset.
+            val_indices (list): Indices corresponding to the validation subset of the Dataset.
+            test_indices (list): Indices corresponding to the test subset of the Dataset.
+            image_transforms (transforms.Compose, optional): Additional image transformations for the train subset.
+            transform_val (bool): Specifies whether to apply train image transformations to the validation subset.
+            train_sample_weights (torch.tensor, optional): Contains weights for each sample in the train subset.
+        """
+
+        if image_transforms is not None:
+            dataset_aug = copy.deepcopy(self)
+            dataset_aug.append_image_transforms(
+                image_transforms = image_transforms, verbose = False
+            )
+            train_dataset = Subset(dataset_aug, train_indices)
+            if transform_val:
+                val_dataset = Subset(dataset_aug, val_indices)
+            else:
+                val_dataset = Subset(self, val_indices)
+        else:
+            train_dataset = Subset(self, train_indices)
+            val_dataset = Subset(self, val_indices)
+        
+        test_dataset = Subset(self, test_indices)
+
+        if train_sample_weights is None:
+            train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True, 
+                generator = torch.Generator().manual_seed(self.seed)
+            )
+        else:
+            train_loader = DataLoader(
+                train_dataset, batch_size = batch_size, 
+                sampler = WeightedRandomSampler(train_sample_weights, num_samples = len(train_sample_weights), replacement = True)
+            )
+
+        val_loader = DataLoader(
+            val_dataset, batch_size = batch_size, sampler = SequentialSampler(val_dataset)
+        )
+        test_loader = DataLoader(
+            test_dataset, batch_size = batch_size, sampler = SequentialSampler(test_dataset)
+        )
+
+        return train_loader, val_loader, test_loader            
     
     
 
