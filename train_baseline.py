@@ -59,21 +59,62 @@ dataset_selected = ImageDataset(
     seed = SEED
     )
 
-# Merge categories
+## Merge categories ##
+# (14 final nodes)
+# classes_to_merge_list = [
+#     [
+#     'Guinardia_delicatula',
+#     'Guinardia_striata',
+#     'G_delicatula_external_parasite',
+#    ],
+#    [
+#     'Chaetoceros',
+#     'Chaetoceros_didymus_flagellate',   
+#    ]
+# ]
+# new_names_list = [
+#     'Guinardia',
+#     'Chaetoceros'
+# ]
+
+# At subclass level
+
 classes_to_merge_list = [
+    [
+    'Cylindrotheca',
+    'Pseudonitzschia'
+    ],
+    ['Thalassionema'],
+    [
+    'Chaetoceros',
+    'Chaetoceros_didymus_flagellate',
+    'Leptocylindrus',
+    'Cerataulina',
+    'Eucampia'
+    ],
+    [
+    'Ditylum',
+    'Skeletonema',
+    'Thalassiosira'
+    ],
+    ['Corethron'],
     [
     'Guinardia_delicatula',
     'Guinardia_striata',
     'G_delicatula_external_parasite',
-   ],
-   [
-    'Chaetoceros',
-    'Chaetoceros_didymus_flagellate',   
-   ]
+    'Dactyliosolen',
+    'Rhizosolenia'
+   ]   
 ]
+
+
 new_names_list = [
-    'Guinardia',
-    'Chaetoceros'
+    'Bacillariophycidae',
+    'Fragilariophycidae',
+    'Chaetocerothophycidae',
+    'Thalassiosirophycidae',
+    'Corethopycidae',
+    'Rhyzosoleniophycidae'
 ]
 
 # Define final dataset
@@ -129,7 +170,7 @@ train_loader, val_loader, test_loader = dataset.create_dataloaders(
 ############################# Train model ######################################
 
 # Define model 
-MODEL_NAME = 'densenet121'
+MODEL_NAME = 'resnet50' # densenet121 resnet50
 weights_directory = '/data/zooplankton_data'
 
 model = Model(
