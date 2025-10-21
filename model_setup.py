@@ -26,6 +26,7 @@ class Model:
         model_name (str, optional): Model to use ('densenet121' or 'resnet50'). Defaults to 'densenet121'.
         device (torch.device, optional): Computation device (e.g., torch.device('cuda')). Defaults to None.
         seed (int, optional): Random seed for reproducibility. Defaults to 666.
+        init_weights (bool): True to initialize the model with pre-trained weights. Default = True
 
     Attributes:
         model_id (str): Unique identifier for the model instance (based on datetime).
@@ -42,7 +43,7 @@ class Model:
 
     def __init__(self, weights_directory,num_classes, 
                  model_name: str = 'densenet121',device: torch.device = None, 
-                 seed: int = 666):
+                 init_weights = True,seed: int = 666):
         
         # Main class initializations
         self.model_id = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -64,9 +65,11 @@ class Model:
         else:
             raise ValueError('Unsupported model. Select one of densenet121 or resnet50.')
         
-        state_dict = torch.load(self.weights_path, map_location = 'cpu')
-        self.model.load_state_dict(state_dict, strict = False)
-        self.model.to(self.device)
+        if init_weights:
+            state_dict = torch.load(self.weights_path, map_location = 'cpu')
+            self.model.load_state_dict(state_dict, strict = False)
+            self.model.to(self.device)
+            self.weights_path = None
 
         if self.model_name == 'densenet121':
             self.model.classifier = torch.nn.Linear(self.model.classifier.in_features, self.num_classes)
