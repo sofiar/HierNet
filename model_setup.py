@@ -68,10 +68,10 @@ class Model:
         if init_weights:
             state_dict = torch.load(self.weights_path, map_location = 'cpu')
             self.model.load_state_dict(state_dict, strict = False)
-            self.model.to(self.device)
         else:    
             self.weights_path = None
 
+        self.model.to(self.device)
         if self.model_name == 'densenet121':
             self.model.classifier = torch.nn.Linear(self.model.classifier.in_features, self.num_classes)
         elif self.model_name == 'resnet50':
