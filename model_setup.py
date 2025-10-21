@@ -69,6 +69,7 @@ class Model:
             state_dict = torch.load(self.weights_path, map_location = 'cpu')
             self.model.load_state_dict(state_dict, strict = False)
             self.model.to(self.device)
+        else:    
             self.weights_path = None
 
         if self.model_name == 'densenet121':
