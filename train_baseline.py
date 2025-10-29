@@ -62,7 +62,9 @@ dataset_selected = ImageDataset(
     seed = SEED
     )
 
-# Merge categories 
+# Merge categories  
+
+# 1. SCSOFG
 if LEVEL == 'genus': # (14 final nodes)
     
     classes_to_merge_list = [
@@ -225,10 +227,92 @@ elif LEVEL=='subphylum': #(2 final nodes)
     ]
     new_names_list = ['Bacillariophytina','Coscinodiscophytina']
     
+    
+# 2. Colonial - Unicellular
+elif LEVEL == 'col-uni': 
+    
+    classes_to_merge_list = [
+        [
+            'Chaetoceros',
+            'Chaetoceros_didymus_flagellate',
+            'Lauderia',
+            'Asterionellopsis',
+            'Pseudonitzschia',
+            'Leptocylindrus',
+            'Eucampia',
+            'Skeletonema',
+            'Dactyliosolen',
+            'Thalassiosira',
+            'Guinardia_delicatula',
+            'Guinardia_striata',
+            'G_delicatula_external_parasite'
+        ],
+        [
+            'Corethron',
+            'Ditylum',
+            'Cylindrotheca',
+            'Coscinodiscus',
+            'Ephemera'
+        ]
+        
+    ]
+    new_names_list = ['Colonial','Unicellular' ]
+
+
+elif LEVEL == 'spines': 
+    
+    classes_to_merge_list = [
+        [
+            'Chaetoceros',
+            'Chaetoceros_didymus_flagellate',
+            'Lauderia',
+            'Asterionellopsis'
+        ],
+        [   
+            'Pseudonitzschia',
+            'Leptocylindrus',
+            'Eucampia',
+            'Skeletonema',
+            'Dactyliosolen',
+            'Thalassiosira',
+            'Guinardia_delicatula',
+            'Guinardia_striata',
+            'G_delicatula_external_parasite'
+        ],
+        [
+            'Corethron',
+            'Ditylum'
+        ],
+        [
+            'Cylindrotheca',
+            'Coscinodiscus',
+            'Ephemera'
+        ]
+    ]
+    new_names_list = ['C-Spines','C-NoSpines','U-Spines','U-NoSpines' ]
+    
+
+elif LEVEL == 'name': 
+    
+    classes_to_merge_list = [
+        [
+            'Chaetoceros',
+            'Chaetoceros_didymus_flagellate',
+        ],
+        [   
+            'Guinardia_delicatula',
+            'Guinardia_striata',
+            'G_delicatula_external_parasite'
+        ]        
+    ]
+    new_names_list = ['Chaetoceros','Guinardia' ]
+    
+
+    
 else:
     raise ValueError(
         'Unsupported level. Select one of: subphylum, class, subclass, '
-        'order, family or genus'
+        'order, family, genus, col-uni, spines or name'
     )
     
 
@@ -292,7 +376,8 @@ model = Model(
     weights_directory = weights_directory,
     device = device,
     num_classes = NUM_CLASSES,
-    model_name = MODEL_NAME
+    model_name = MODEL_NAME,
+    init_weights = False
 )
 
 # Define hyperparamters
