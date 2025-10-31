@@ -16,7 +16,9 @@ print(f'Using device: {device}')
 
 # Specify paths
 data_directory = '/data/WHOI-Plankton'
-data_subdirectories = ['2010','2011', '2012','2013','2014']
+data_subdirectories = [
+    '2006','2007','2008','2009','2010','2011', '2012','2013','2014'
+    ]
 
 # Specify other environment variables
 SEED = 666
@@ -25,27 +27,32 @@ set_seed(SEED)
 ############################# Data preparation #################################
 
 # Set level
-LEVEL = 'class' # subphylum - class - subclass - order - family - genus
+LEVEL = 'spines' # subphylum - class - subclass - order - family - genus 
+                # col-uni - spines - name'
 
 # Set classes
 PLANKTON_CLASSES = [
+     'Asterionellopsis',
     'Cylindrotheca',
     'Cerataulina',
     'Chaetoceros',
     'Chaetoceros_didymus_flagellate',
     'Corethron',
+    'Coscinodiscus',
     'Dactyliosolen',
     'Ditylum',
     'Eucampia',
+    'Ephemera',
     'Guinardia_delicatula',
     'Guinardia_striata',
     'G_delicatula_external_parasite',
     'Leptocylindrus',
+    'Lauderia',
     'Pseudonitzschia',
-    'Rhizosolenia',
+    #'Rhizosolenia',
     'Skeletonema',
     'Thalassiosira',
-    'Thalassionema'         
+    #'Thalassionema'
     ]
 
 # Create ImageDataset
@@ -369,15 +376,15 @@ train_loader, val_loader, test_loader = dataset.create_dataloaders(
 ############################# Train model ######################################
 
 # Define model 
-MODEL_NAME = 'densenet121' # densenet121 resnet50
+MODEL_NAME = 'resnet50' # densenet121 resnet50
 weights_directory = '/data/zooplankton_data'
 
 model = Model(
     weights_directory = weights_directory,
     device = device,
     num_classes = NUM_CLASSES,
-    model_name = MODEL_NAME,
-    init_weights = False
+    model_name = MODEL_NAME
+    #init_weights = False
 )
 
 # Define hyperparamters
@@ -385,7 +392,7 @@ HYPERPARAMETERS = {
     'loss_fn': {'type': 'CrossEntropyLoss', 'weights': None}, 
     'optimizer': 'Adam', 
     'lr': 5e-4, 
-    'epochs': 50, #50
+    'epochs': 50, 
     'scheduler':{'type': 'CosineAnnealingLR', 'T_max': 50},
     'early_stopping': {'patience': 15, 'delta': 0.005}
 }
