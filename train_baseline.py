@@ -242,6 +242,7 @@ elif LEVEL == 'col-uni':
         [
             'Chaetoceros',
             'Chaetoceros_didymus_flagellate',
+            'Cerataulina',
             'Lauderia',
             'Asterionellopsis',
             'Pseudonitzschia',
@@ -276,6 +277,7 @@ elif LEVEL == 'spines':
             'Asterionellopsis'
         ],
         [   
+            'Cerataulina'
             'Pseudonitzschia',
             'Leptocylindrus',
             'Eucampia',
