@@ -9,6 +9,8 @@ from extra_functions import set_seed
 # Base from https://arxiv.org/abs/1709.09890
 
 
+########################## BCNN with VGG16 Architecture ########################
+
 class VGGBlock(nn.Module):
     """
     Convolutional block used in VGG-style architecture. 
@@ -94,6 +96,18 @@ class CoarseBlock(nn.Module):
      
          
 class BcnnVGG(nn.Module):
+    """
+    BCNN VGG-Style fir multi-label classification
+    
+    Args:
+        input_shape (int): Number of input channels
+        dim_outputs (list): List with the number of output classes for each hierarchy level. 
+        resolution (int, optional): Input image resolution. Default is 64
+        levels (int): Number of hierarchy levels (2 or 3). Default is 2  
+         
+    """
+    
+    
     def __init__(self,input_shape:int, dim_outputs:list,            
                  resolution: int = 64,levels=2):
         super(BcnnVGG,self).__init__()
@@ -159,8 +173,12 @@ class BcnnVGG(nn.Module):
         if self.levels ==3:
             return c1_pred, c2_pred, fine_pred
         elif self.levels ==2: 
-            return c1_pred, fine_pred             
-              
+            return c1_pred, fine_pred       
+
+
+############################ BCNN Model definition #############################
+
+
 def hierarchical_loss(outputs, targets,criterion,alphas):
     
     c1_pred, c2_pred = outputs #, fine_pred = outputs
@@ -173,7 +191,6 @@ def hierarchical_loss(outputs, targets,criterion,alphas):
     return loss
         
 class BCNN_Model:
-    # Base from https://arxiv.org/abs/1709.09890
 
     def __init__(
             self, weights_directory,dim_outputs, 
