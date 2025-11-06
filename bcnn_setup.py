@@ -405,12 +405,14 @@ class BCNN_Model:
             train_loss = 0
             train_acc = [0 for _ in range(self.levels)]
 
-            for imgs, (y_c1,y_c2) in train_loader:
+            for imgs, targets in train_loader:
                 
-                imgs, y_c1, y_c2 = imgs.to(device), y_c1.to(device), y_c2.to(device)
+                imgs = imgs.to(device)
+                targets = tuple(t.to(device) for t in targets)
+
                 outputs = model(imgs)
                 loss =  hierarchical_loss(
-                    outputs,(y_c1,y_c2),criterion = loss_fn,alphas = loss_fn_alpha
+                    outputs,targets,criterion = loss_fn,alphas = loss_fn_alpha
                 )  
                 train_loss += loss 
                 optimizer.zero_grad()
@@ -420,7 +422,7 @@ class BCNN_Model:
                 # Calculate and accumulate accuracy metric across all batches
                 for l in range(self.levels):
                     y_pred_class = torch.argmax(torch.softmax(outputs[l], dim=1), dim=1)
-                    train_acc[l] += (y_pred_class == y_c1).sum().item()/len(outputs[l])                
+                    train_acc[l] += (y_pred_class == targets[l]).sum().item()/len(outputs[l])                
                     
             train_acc = [x / len(train_loader) for x in train_acc]
             train_loss = train_loss/len(train_loader)
@@ -431,18 +433,20 @@ class BCNN_Model:
                 test_loss = 0
                 test_acc = [0 for _ in range(self.levels)]
                 
-                for imgs, (y_c1,y_c2) in val_loader:
+                for imgs, targets in val_loader:
                     
-                    imgs, y_c1, y_c2 = imgs.to(device), y_c1.to(device), y_c2.to(device)
+                    imgs = imgs.to(device)
+                    targets = tuple(t.to(device) for t in targets)
+
                     test_pred = model(imgs)
                     test_loss +=  hierarchical_loss(
-                        test_pred,(y_c1,y_c2),criterion = loss_fn,alphas = loss_fn_alpha
+                        test_pred,targets,criterion = loss_fn,alphas = loss_fn_alpha
                     )  
               
                     # Calculate and accumulate accuracy metric across all batches
                     for l in range(self.levels):
                         y_pred_class = torch.argmax(torch.softmax(test_pred[l], dim=1), dim=1)
-                        test_acc[l] += (y_pred_class == y_c1).sum().item()/len(test_pred[l])                
+                        test_acc[l] += (y_pred_class == targets[l]).sum().item()/len(test_pred[l])                
                         
                 test_acc = [x / len(val_loader) for x in test_acc]
                 test_loss = test_loss/len(val_loader)     
