@@ -5,6 +5,8 @@ import time
 from datetime import datetime
 from modular import engine
 from extra_functions import set_seed
+from torchvision import models
+
 
 # Base from https://arxiv.org/abs/1709.09890
 
@@ -95,85 +97,168 @@ class CoarseBlock(nn.Module):
         return x
      
          
-class BcnnVGG(nn.Module):
-    """
-    BCNN VGG-Style fir multi-label classification
+# class BcnnVGG(nn.Module):
+#     """
+#     BCNN VGG-Style fir multi-label classification
     
-    Args:
-        input_shape (int): Number of input channels
-        dim_outputs (list): List with the number of output classes for each hierarchy level. 
-        resolution (int, optional): Input image resolution. Default is 64
-        levels (int): Number of hierarchy levels (2 or 3). Default is 2  
+#     Args:
+#         input_shape (int): Number of input channels
+#         dim_outputs (list): List with the number of output classes for each hierarchy level. 
+#         resolution (int, optional): Input image resolution. Default is 64
+#         levels (int): Number of hierarchy levels (2 or 3). Default is 2  
          
-    """
+#     """
     
     
-    def __init__(self,input_shape:int, dim_outputs:list,            
-                 resolution: int = 64,levels=2):
-        super(BcnnVGG,self).__init__()
+#     def __init__(self,input_shape:int, dim_outputs:list,            
+#                  resolution: int = 64,levels=2):
+#         super(BcnnVGG,self).__init__()
         
-        self.levels =levels
+#         self.levels =levels
+        
+#         if self.levels not in [2,3]:
+#             raise ValueError('Error: Level must be 2 or 3.')
+        
+#         if len(dim_outputs)!=levels:
+#             raise ValueError('Error: dim_outputs should be of length levels.')
+                       
+#         self.block_1 = VGGBlock(in_channels=input_shape, out_channels=64,num_conv=2)
+#         self.block_2 = VGGBlock(in_channels=64, out_channels=128,num_conv=2)
+#         feature_extractor = nn.Sequential(self.block_1, self.block_2)
+#         self.coarse1 = CoarseBlock(
+#             feature_extractor,
+#             input_shape = (3,resolution,resolution),
+#             coarse_classes = dim_outputs[0]
+#         )
+#         self.block_3 = VGGBlock(in_channels=128, out_channels=256,num_conv=3)
+#         feature_extractor = nn.Sequential(self.block_1, self.block_2,self.block_3)
+#         if self.levels==3:
+#             self.coarse2 = CoarseBlock(
+#                 feature_extractor,
+#                 input_shape=(3,resolution,resolution),
+#                 coarse_classes=dim_outputs[1]        
+#             )
+#         self.block4 = VGGBlock(in_channels=256,out_channels=512,num_conv=3)
+#         self.block5 = VGGBlock(in_channels=512,out_channels=512,num_conv=3)
+#         feature_extractor = nn.Sequential(
+#             self.block_1, self.block_2,self.block_3,
+#             self.block4,self.block5
+#         )
+#         self.fine = CoarseBlock(
+#             feature_extractor,
+#             coarse_classes=dim_outputs[levels-1]
+#         )
+        
+    
+#     def forward(self,x):
+#         # Block 1 and 2
+#         x = self.block_1(x)
+#         x = self.block_2(x)
+#         c1 = self.coarse1(x)  
+        
+#         # Coarse level 1
+#         c1_pred = F.softmax(c1,dim=1)
+#         x = self.block_3(x)
+        
+#         # Coarse level 2 (only if hierarchical level == 3)
+#         if self.levels ==3:
+#             c2 = self.coarse2(x)
+#             c2_pred = F.softmax(c2,dim=1)
+            
+#         # Final pred
+#         x = self.block4(x)
+#         x = self.block5(x)
+#         fine = self.fine(x)  
+#         fine_pred = F.softmax(fine,dim=1)
+
+#         # Return predictions depending on the hierarchy depth
+#         if self.levels ==3:
+#             return c1_pred, c2_pred, fine_pred
+#         elif self.levels ==2: 
+#             return c1_pred, fine_pred       
+
+class BcnnVGG(nn.Module):
+    def __init__(self, dim_outputs:list , levels: int =2, weights_directory = None):
+        super().__init__()
+        
+        self.levels = levels
+        self.weights_path = weights_directory + '/vgg16-397923af.pth'
         
         if self.levels not in [2,3]:
             raise ValueError('Error: Level must be 2 or 3.')
         
         if len(dim_outputs)!=levels:
             raise ValueError('Error: dim_outputs should be of length levels.')
-                       
-        self.block_1 = VGGBlock(in_channels=input_shape, out_channels=64,num_conv=2)
-        self.block_2 = VGGBlock(in_channels=64, out_channels=128,num_conv=2)
-        feature_extractor = nn.Sequential(self.block_1, self.block_2)
-        self.coarse1 = CoarseBlock(
-            feature_extractor,
-            input_shape = (3,resolution,resolution),
-            coarse_classes = dim_outputs[0]
-        )
-        self.block_3 = VGGBlock(in_channels=128, out_channels=256,num_conv=3)
-        feature_extractor = nn.Sequential(self.block_1, self.block_2,self.block_3)
-        if self.levels==3:
-            self.coarse2 = CoarseBlock(
-                feature_extractor,
-                input_shape=(3,resolution,resolution),
-                coarse_classes=dim_outputs[1]        
-            )
-        self.block4 = VGGBlock(in_channels=256,out_channels=512,num_conv=3)
-        self.block5 = VGGBlock(in_channels=512,out_channels=512,num_conv=3)
-        feature_extractor = nn.Sequential(
-            self.block_1, self.block_2,self.block_3,
-            self.block4,self.block5
-        )
-        self.fine = CoarseBlock(
-            feature_extractor,
-            coarse_classes=dim_outputs[levels-1]
-        )
-        
-    
-    def forward(self,x):
-        # Block 1 and 2
-        x = self.block_1(x)
-        x = self.block_2(x)
-        c1 = self.coarse1(x)  
-        
-        # Coarse level 1
-        c1_pred = F.softmax(c1,dim=1)
-        x = self.block_3(x)
-        
-        # Coarse level 2 (only if hierarchical level == 3)
-        if self.levels ==3:
-            c2 = self.coarse2(x)
-            c2_pred = F.softmax(c2,dim=1)
-            
-        # Final pred
-        x = self.block4(x)
-        x = self.block5(x)
-        fine = self.fine(x)  
-        fine_pred = F.softmax(fine,dim=1)
 
+        base = models.vgg16(weights= None)
+        state_dict = torch.load(self.weights_path, map_location = 'cpu')
+        base.load_state_dict(state_dict, strict=False)
+        
+        
+        # Split pretrained VGG into two parts
+        self.features_block1 = base.features[:19]  
+        self.features_block2 = base.features[19:24]
+        self.features_block3 = base.features[24:]   
+        
+        # Coarse level 1 
+        self.coarse_1 = nn.Sequential(
+            nn.AdaptiveAvgPool2d((7,7)),
+            nn.Flatten(),
+            nn.Linear(512 * 7 * 7, 512),
+            nn.ReLU(inplace=True),
+            nn.Linear(512, dim_outputs[0])
+        )
+
+        # Coarse level 2 
+        if self.levels ==3:
+            self.coarse_2 = nn.Sequential(
+                nn.AdaptiveAvgPool2d((7,7)),
+                nn.Flatten(),
+                nn.Linear(512 * 7 * 7, 512),
+                nn.ReLU(inplace=True),
+                nn.Linear(512, dim_outputs[1])
+            )
+        
+        # Fine level
+        self.fine_head = nn.Sequential(
+            nn.AdaptiveAvgPool2d((7,7)),
+            nn.Flatten(),
+            nn.Linear(512 * 7 * 7, 4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
+            nn.Linear(4096, 4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
+            nn.Linear(4096, dim_outputs[self.levels-1])
+        )
+        
+        # Initialize with pretrained weights for shared parts
+        self._init_from_pretrained(base)
+    
+    def _init_from_pretrained(self, base):
+        # Copy matching weights
+        pretrained_dict = base.state_dict()
+        model_dict = self.state_dict()
+        pretrained_dict = {k: v for k, v in pretrained_dict.items()
+                           if k in model_dict and v.shape == model_dict[k].shape}
+        model_dict.update(pretrained_dict)
+        self.load_state_dict(model_dict)
+    
+    def forward(self, x):
+        # Block 1
+        x = self.features_block1(x)
+        c1_pred = self.coarse_1(x)
+        x = self.features_block2(x)
+        if self.levels ==3:
+            c2_pred = self.coarse_2
+        fine_pred = self.fine_head(x)
+                
         # Return predictions depending on the hierarchy depth
         if self.levels ==3:
             return c1_pred, c2_pred, fine_pred
         elif self.levels ==2: 
-            return c1_pred, fine_pred       
+            return c1_pred, fine_pred     
+        
 
 
 ############################ BCNN Model definition #############################
@@ -195,7 +280,7 @@ class BCNN_Model:
     def __init__(
             self, weights_directory,dim_outputs, 
             model_name: str = 'vgg16',device: torch.device = None, 
-            seed: int = 666,resolution=64,levels:int  = 2
+            seed: int = 666,levels:int  = 2
         ):
         
         # Main class initializations
@@ -212,10 +297,11 @@ class BCNN_Model:
         # Load model and weights
         if self.model_name == 'vgg16':
             self.model = BcnnVGG(
-                input_shape=3, 
+                #input_shape=3, 
                 dim_outputs=self.dim_outputs,
-                resolution=resolution,
-                levels = self.levels
+                #resolution=resolution,
+                levels = self.levels,
+                weights_directory = self.weights_directory
             )
             #self.weights_path = self.weights_directory + '/.....pth'
         else:
