@@ -13,88 +13,88 @@ from torchvision import models
 
 ########################## BCNN with VGG16 Architecture ########################
 
-class VGGBlock(nn.Module):
-    """
-    Convolutional block used in VGG-style architecture. 
+# class VGGBlock(nn.Module):
+#     """
+#     Convolutional block used in VGG-style architecture. 
     
-    It consists of a sequence of covolutional layers, each followed by a RELU 
-    activation and batch normalization. After specified number of convolutional 
-    layers, a max pooling is applied. 
+#     It consists of a sequence of covolutional layers, each followed by a RELU 
+#     activation and batch normalization. After specified number of convolutional 
+#     layers, a max pooling is applied. 
     
-    Args:
-        in_channels (int): Number of input channels
-        out_channels (int): Number of output channels
-        num_cov (int): Number of covolutional layers in the block. 
+#     Args:
+#         in_channels (int): Number of input channels
+#         out_channels (int): Number of output channels
+#         num_cov (int): Number of covolutional layers in the block. 
     
-    """
+#     """
     
-    def __init__(self, in_channels:int, out_channels:int, num_conv: int):
-        super(VGGBlock, self).__init__()
-        layers = []
-        for i in range(num_conv):
-            layers +=[
-                nn.Conv2d(
-                    in_channels = in_channels if i == 0 else out_channels,
-                    out_channels = out_channels,
-                    kernel_size = 3,
-                    padding = 1
-                ),
-                nn.ReLU(),
-                nn.BatchNorm2d(out_channels)
-            ]
-        layers +=[nn.MaxPool2d(kernel_size=2,stride=2)]  
-        self.block = nn.Sequential(*layers)  
+#     def __init__(self, in_channels:int, out_channels:int, num_conv: int):
+#         super(VGGBlock, self).__init__()
+#         layers = []
+#         for i in range(num_conv):
+#             layers +=[
+#                 nn.Conv2d(
+#                     in_channels = in_channels if i == 0 else out_channels,
+#                     out_channels = out_channels,
+#                     kernel_size = 3,
+#                     padding = 1
+#                 ),
+#                 nn.ReLU(),
+#                 nn.BatchNorm2d(out_channels)
+#             ]
+#         layers +=[nn.MaxPool2d(kernel_size=2,stride=2)]  
+#         self.block = nn.Sequential(*layers)  
             
-    def forward(self, x):
-        return self.block(x)    
+#     def forward(self, x):
+#         return self.block(x)    
         
-class CoarseBlock(nn.Module):
-    """
-    Fully connected classification block for coarse level predictions. 
+# class CoarseBlock(nn.Module):
+#     """
+#     Fully connected classification block for coarse level predictions. 
     
-    It consists of a flattens block that extracted features maps and passes them
-    through a fully connected layer wit ReLu activations, batch normalization and 
-    dropout regularization. 
+#     It consists of a flattens block that extracted features maps and passes them
+#     through a fully connected layer wit ReLu activations, batch normalization and 
+#     dropout regularization. 
     
-    Args: 
-        feature_extractor (nn.module): A convolutional feature extractor whose outputs 
-        defines de input size for the first fully connected layer.
-        coarse_classes (int): Number of outputs classes for the coarse level-prediction.
-        input_shape (tuple,optional): Shape of the input tensor (channels, height, width). 
-        Default is (3,64,64).    
+#     Args: 
+#         feature_extractor (nn.module): A convolutional feature extractor whose outputs 
+#         defines de input size for the first fully connected layer.
+#         coarse_classes (int): Number of outputs classes for the coarse level-prediction.
+#         input_shape (tuple,optional): Shape of the input tensor (channels, height, width). 
+#         Default is (3,64,64).    
     
-    """
+#     """
     
-    def __init__(self,feature_extractor,coarse_classes:int, input_shape=(3,64,64)):        
-        super(CoarseBlock,self).__init__()   
+#     def __init__(self,feature_extractor,coarse_classes:int, input_shape=(3,64,64)):        
+#         super(CoarseBlock,self).__init__()   
         
-        # adapt flattened feature by resolution
-        with torch.no_grad():
-            dummy = torch.zeros(1, *input_shape)
-            feat = feature_extractor(dummy)
-            in_features = feat.numel()
+#         # adapt flattened feature by resolution
+#         with torch.no_grad():
+#             dummy = torch.zeros(1, *input_shape)
+#             feat = feature_extractor(dummy)
+#             in_features = feat.numel()
         
         
-        self.flatten = nn.Flatten()
-        self.fc_layers = nn.Sequential(
-            nn.Linear(in_features, 256),
-            nn.ReLU(),
-            nn.BatchNorm1d(256),
-            nn.Dropout(0.5),
+#         self.flatten = nn.Flatten()
+#         self.fc_layers = nn.Sequential(
+#             nn.Linear(in_features, 256),
+#             nn.ReLU(),
+#             nn.BatchNorm1d(256),
+#             nn.Dropout(0.5),
                         
-            nn.Linear(256,256),
-            nn.ReLU(),
-            nn.BatchNorm1d(256),
-            nn.Dropout(0.5),
-        )
+#             nn.Linear(256,256),
+#             nn.ReLU(),
+#             nn.BatchNorm1d(256),
+#             nn.Dropout(0.5),
+#         )
         
-        self.out = nn.Linear(256,coarse_classes)
+#         self.out = nn.Linear(256,coarse_classes)
     
-    def forward(self, x):
-        x = self.flatten(x)
-        x = self.fc_layers(x)
-        x = self.out(x) # logits
-        return x
+#     def forward(self, x):
+#         x = self.flatten(x)
+#         x = self.fc_layers(x)
+#         x = self.out(x) # logits
+#         return x
      
          
 # class BcnnVGG(nn.Module):
@@ -506,11 +506,13 @@ class BCNN_Model:
                     probs[l].append(prob)
                     preds[l].append(pred)
                     logits[l].append(output[l])
+                    labels[l].append(targets[l])
                     
-                for l in range(self.levels):
-                    probs[l] = torch.cat(probs[l])
-                    preds[l] = torch.cat(preds[l])
-                    logits[l] = torch.cat(logits[l])
+            for l in range(self.levels):
+                probs[l] = torch.cat(probs[l])
+                preds[l] = torch.cat(preds[l])
+                logits[l] = torch.cat(logits[l])
+                labels[l] = torch.cat(labels[l])
         
         return labels, probs, preds, logits
                     
