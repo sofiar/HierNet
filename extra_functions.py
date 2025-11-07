@@ -46,3 +46,50 @@ def extract_metrics(metrics_dict):
         cleaned[key] = cleaned_values
 
     return cleaned
+
+def extract_metrics_hier(metrics_dict):
+
+    """
+     Returns new dictionary with the same keys and Tensor metric values converted to Python floats.
+
+    Args:
+        metrics_dict (dict): Dictionary where keys are metric names and values are lists 
+            containing lists per level  of numbers or PyTorch tensors.
+
+    Example:
+        Input: {
+            'loss': [[tensor(0.5), tensor(0.3)].[tensor(0.8), tensor(0.6)]], 
+            'acc': [[0.8, tensor(0.9)],[0.5, tensor(0.1)]]
+            }
+        Output: {
+            'loss': [[0.5, 0.3],[0.8,0.6]],
+            'acc': [[0.8, 0.9],[0.5,0.1]]
+            }
+
+    """
+
+    cleaned = {}
+
+    for key, values in metrics_dict.items():
+        size = len(values)
+        if isinstance(values[0], list):
+            cleaned_values = [[] for _ in range(size)]
+            for l in range(size):   
+                curr_val = values[l]
+                for v in curr_val:
+                    if isinstance(v, torch.Tensor):
+                        cleaned_values[l].append(v.item())
+                    else:
+                        cleaned_values[l].append(float(v))
+                        
+        else: 
+            cleaned_values = []
+            for v in values:
+                if isinstance(v, torch.Tensor):
+                    cleaned_values.append(v.item())
+                else:
+                    cleaned_values.append(float(v))
+                                        
+        cleaned[key] = cleaned_values
+
+    return cleaned
