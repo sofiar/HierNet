@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import time
 from datetime import datetime
 from modular import engine
-from extra_functions import set_seed
+from extra_functions import set_seed, extract_metrics_hier
 from torchvision import models
 
 
@@ -394,6 +394,13 @@ class BCNN_Model:
         device = self.device
         model.to(device)
         
+        results = {
+            'train_loss': [],
+            'test_loss': [],
+            'train_acc': [[] for _ in range(self.levels)],
+            'test_acc': [[] for _ in range(self.levels)]
+            }
+        
         if verbose:
             print(f'\nStarting training! Model: {self.model_name} (ID: {self.model_id})\n')
         start = time.time()
@@ -469,13 +476,26 @@ class BCNN_Model:
                     f"train_loss: {train_loss:.5f} | test_loss: {test_loss:.5f} |"
                     f"train_acc: {', '.join([f'{x:.5f}' for x in train_acc])} | "
                     f"test_acc: {', '.join([f'{x:.5f}' for x in test_acc])}"
-                )    
+                )   
+                
+            # Update results dictionary
+            results['test_loss'].append(test_loss)
+            results['train_loss'].append(train_loss)
+            
+            for l in range(self.levels):
+                results['train_acc'][l].append(train_acc[l])
+                results['test_acc'][l].append(test_acc[l])     
             
        
 
         elapsed = time.time() - start
         if verbose:
             print(f'\nTraining Finished! Time Elapsed: {elapsed:.2f} sec.')
+        
+        # Get metrics
+        print(results)
+        self.train_results = extract_metrics_hier(results)
+    
     
     def predict(self, test_loader):
         
