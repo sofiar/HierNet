@@ -476,5 +476,51 @@ class BCNN_Model:
         elapsed = time.time() - start
         if verbose:
             print(f'\nTraining Finished! Time Elapsed: {elapsed:.2f} sec.')
+    
+    def predict(self, test_loader):
+        
+        """
+        Generates predictions for the specified samples using the trained model instance.
+
+        Args:
+            test_loader (DataLoader): PyTorch DataLoader containing the test dataset.
+        """
+        
+        self.model.eval()
+        labels = [[] for _ in range(self.levels)]
+        preds = [[] for _ in range(self.levels)]
+        probs = [[] for _ in range(self.levels)]
+        logits = [[] for _ in range(self.levels)]
+        
+        with torch.no_grad():
+            for img, targets in test_loader:
+                
+                img = img.to(self.device)
+                targets = tuple(t.to(self.device) for t in targets)
+                
+                output = self.model(img)
+                
+                for l in range(self.levels):
+                    prob = F.softmax(output[l],dim=1)
+                    pred = output[l].argmax(dim=1)
+                    probs[l].append(prob)
+                    preds[l].append(pred)
+                    logits[l].append(output[l])
+                    
+                for l in range(self.levels):
+                    probs[l] = torch.cat(probs[l])
+                    preds[l] = torch.cat(preds[l])
+                    logits[l] = torch.cat(logits[l])
+        
+        return labels, probs, preds, logits
+                    
+                    
+                    
+                    
+        
+                    
+                
+        
+        
 
         
