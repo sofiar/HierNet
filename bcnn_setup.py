@@ -493,7 +493,6 @@ class BCNN_Model:
             print(f'\nTraining Finished! Time Elapsed: {elapsed:.2f} sec.')
         
         # Get metrics
-        print(results)
         self.train_results = extract_metrics_hier(results)
     
     
