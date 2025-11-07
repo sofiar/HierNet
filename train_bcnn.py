@@ -1,0 +1,186 @@
+import os
+import torch
+from torchvision import transforms
+from samples_setup import ImageDataset, HierImageDataset
+from model_setup import Model
+from extra_functions import set_seed
+from bcnn_setup import BCNN_Model, BcnnVGG
+
+########################### Environment set up #################################
+
+# Specify GPU
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
+print(torch.cuda.get_device_name(0))
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f'Using device: {device}')
+
+# Specify paths
+data_directory = '/data/WHOI-Plankton'
+data_subdirectories = [
+    '2006','2007','2008','2009','2010','2011', '2012','2013','2014'
+    ]
+
+# Specify other environment variables
+SEED = 666
+set_seed(SEED)
+
+############################# Data preparation #################################
+
+PLANKTON_CLASSES = [
+    #'Asterionellopsis',
+    #'Cylindrotheca',
+    #'Cerataulina',
+     'Chaetoceros',
+    # 'Chaetoceros_didymus_flagellate',
+    # 'Corethron',
+    'Coscinodiscus',
+    # 'Dactyliosolen',
+    'Ditylum',
+    'Eucampia',
+    'Ephemera',
+    # 'Guinardia_delicatula',
+    # 'Guinardia_striata',
+    # 'G_delicatula_external_parasite',
+    # 'Leptocylindrus',
+    'Lauderia',
+    'Pseudonitzschia',
+    # 'Skeletonema',
+    # 'Thalassiosira'
+    ]
+
+# Base dataset
+MAX_CLASS_SIZE = 10000
+RESOLUTION = 64
+
+
+dataset = ImageDataset(
+    data_directory = data_directory,
+    data_subdirectories = data_subdirectories,
+    class_names = PLANKTON_CLASSES,
+    max_class_size = MAX_CLASS_SIZE,
+    image_resolution = RESOLUTION,
+    image_transforms = None,
+    format_file = '.png',
+    seed = SEED
+    )
+
+# Create hierarchical dataset
+
+groups = [
+    ['Chaetoceros', 'Lauderia','Pseudonitzschia', 'Eucampia'],
+    ['Ditylum', 'Ephemera', 'Coscinodiscus']
+]
+coarse_names = ['Colonial', 'Multicellular']
+
+hier_dataset = HierImageDataset(
+    base_dataset=dataset,
+    groups=groups,
+    coarse_names = coarse_names
+)
+hier_dataset.print_dataset_details()
+
+##################### Add Image Transformations to Pipeline ####################
+
+train_transforms = transforms.Compose([
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomVerticalFlip(),
+    transforms.RandomRotation(180),
+    transforms.Pad(padding = 5, fill = 0),
+    transforms.Resize((RESOLUTION, RESOLUTION)),
+    transforms.ToTensor(),
+])
+
+
+hier_dataset.append_image_transforms(
+    image_transforms = train_transforms, replace = True
+)
+
+################## Split data into train, test and validation ##################
+ 
+TRAIN_PROP = 0.7
+VAL_PROP = 0.1
+TEST_PROP = 0.2
+
+BATCH_SIZE = 64
+
+train_split, val_split, test_split = hier_dataset.split_train_test_val(
+    train_prop = TRAIN_PROP, val_prop = VAL_PROP, test_prop = TEST_PROP
+)
+
+############################ Create data loaders ###############################
+
+train_loader, val_loader, test_loader = hier_dataset.create_dataloaders(
+    batch_size = BATCH_SIZE,
+    train_indices = train_split,
+    val_indices = val_split,
+    test_indices = test_split,
+    image_transforms = None,
+    train_sample_weights = None
+)
+
+########################## Define and train model ##############################
+
+model = BCNN_Model(
+    weights_directory = './pre_trained_weights',
+    dim_outputs = [2,7],
+    levels = 2,
+    device = device
+)
+HYPERPARAMETERS = {
+    'loss_fn': {'criterion': 'CrossEntropyLoss','alpha': [0.5,0.5]}, 
+    'optimizer': 'Adam', 
+    'lr': 0.001, 
+    'epochs': 50, 
+    'scheduler':{'type': 'StepLR', 'step_size': 10, 'gamma':0.1},
+    'early_stopping': {'patience': 15, 'delta': 0.0005}
+}
+HYPERPARAMETERS['batch_size'] = BATCH_SIZE
+
+model.train(
+    hyperparameters = HYPERPARAMETERS,
+    train_loader = train_loader,
+    val_loader = val_loader
+)
+
+################################# Inference ####################################
+
+labels, probs, preds, logits = model.predict(test_loader = test_loader)
+
+############################### Save Results ###################################
+
+MODEL_ID = model.model_id
+MODEL_NAME = model.model_name
+LEVELS = model.levels
+run_name =  f"BCNN_ {MODEL_ID}_{MODEL_NAME}_{LEVELS}"
+results_directory = '/home/ruizsuar/Plankton-h-classifier/Models_results'
+
+SAVE = True
+
+metadata = {
+    'model_id': MODEL_ID,
+    'model_name': MODEL_NAME,
+    'run_name': run_name,
+    'dataset': hier_dataset,
+    'classes': hier_dataset.class_names,
+    'class_ids': hier_dataset.class_ids,
+    'train_metrics': model.train_results,
+    'test_loader': test_loader,
+    'hyperparameters': HYPERPARAMETERS,
+    'image_transforms': hier_dataset.image_transforms,
+    'max_class_size': MAX_CLASS_SIZE,
+    'levels': LEVELS
+}
+
+
+if SAVE:
+    print(f'Saving weights, predictions, and metadata. Model: {MODEL_NAME} (ID: {MODEL_ID})')
+    print(f'Run Name: {run_name}')
+
+    # Save learned weights, predictions and results
+    torch.save(model.model.state_dict(), os.path.join(results_directory, 'weights', run_name + '.pth'))
+    torch.save((labels, probs, preds, logits), os.path.join(results_directory, 'predictions', run_name + '.pth'))
+    torch.save(metadata, os.path.join(results_directory, 'environment', run_name + '.pth'))
+
+# Delete model objects
+del model
