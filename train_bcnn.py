@@ -1,7 +1,7 @@
 import os
 import torch
 from torchvision import transforms
-from samples_setup import ImageDataset, HierImageDataset
+from samples_setup import ImageDataset, HierImageDataset, merge_classes
 from model_setup import Model
 from extra_functions import set_seed
 from bcnn_setup import BCNN_Model, BcnnVGG
@@ -28,25 +28,25 @@ set_seed(SEED)
 ############################# Data preparation #################################
 
 PLANKTON_CLASSES = [
-    #'Asterionellopsis',
-    #'Cylindrotheca',
-    #'Cerataulina',
-     'Chaetoceros',
-    # 'Chaetoceros_didymus_flagellate',
-    # 'Corethron',
+    'Asterionellopsis',
+    'Cylindrotheca',
+    'Cerataulina',
+    'Chaetoceros',
+    'Chaetoceros_didymus_flagellate',
+    'Corethron',
     'Coscinodiscus',
-    # 'Dactyliosolen',
+    'Dactyliosolen',
     'Ditylum',
     'Eucampia',
     'Ephemera',
-    # 'Guinardia_delicatula',
-    # 'Guinardia_striata',
-    # 'G_delicatula_external_parasite',
-    # 'Leptocylindrus',
+    'Guinardia_delicatula',
+    'Guinardia_striata',
+    'G_delicatula_external_parasite',
+    'Leptocylindrus',
     'Lauderia',
     'Pseudonitzschia',
-    # 'Skeletonema',
-    # 'Thalassiosira'
+    'Skeletonema',
+    'Thalassiosira'
     ]
 
 # Base dataset
@@ -65,11 +65,33 @@ dataset = ImageDataset(
     seed = SEED
     )
 
+# Merge categories  
+classes_to_merge_list = [
+        [
+            'Guinardia_delicatula',
+            'Guinardia_striata',
+            'G_delicatula_external_parasite'
+        ],
+        ['Chaetoceros','Chaetoceros_didymus_flagellate']
+    ]
+new_names_list = ['Guinardia','Chaetoceros' ]
+
+dataset =  merge_classes(
+    dataset = dataset,
+    classes_to_merge_list=classes_to_merge_list,
+    new_names_list=new_names_list
+    )
+
+
 # Create hierarchical dataset
 
 groups = [
-    ['Chaetoceros', 'Lauderia','Pseudonitzschia', 'Eucampia'],
-    ['Ditylum', 'Ephemera', 'Coscinodiscus']
+    [
+        'Asterionellopsis','Chaetoceros', 'Lauderia','Pseudonitzschia', 'Eucampia',
+        'Leptocylindrus', 'Skeletonema', 'Dactyliosolen','Thalassiosira',
+        'Guinardia','Cerataulina'
+    ],
+    ['Ditylum', 'Ephemera', 'Coscinodiscus','Corethron','Cylindrotheca']
 ]
 coarse_names = ['Colonial', 'Multicellular']
 
