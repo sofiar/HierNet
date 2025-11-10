@@ -250,7 +250,7 @@ class BcnnVGG(nn.Module):
         c1_pred = self.coarse_1(x)
         x = self.features_block2(x)
         if self.levels ==3:
-            c2_pred = self.coarse_2
+            c2_pred = self.coarse_2(x)
         fine_pred = self.fine_head(x)
                 
         # Return predictions depending on the hierarchy depth
@@ -264,15 +264,23 @@ class BcnnVGG(nn.Module):
 ############################ BCNN Model definition #############################
 
 
-def hierarchical_loss(outputs, targets,criterion,alphas):
+def hierarchical_loss(outputs, targets,criterion,levels,alphas):
     
-    c1_pred, c2_pred = outputs #, fine_pred = outputs
-    y_c1, y_c2 = targets #, y = targets
-    loss = (
-        #alpha * criterion(fine_pred, y) +
-        alphas[1] * criterion(c2_pred, y_c2) +
-        alphas[0] * criterion(c1_pred, y_c1)
-    )
+    # c1_pred, c2_pred = outputs #, fine_pred = outputs
+    # y_c1, y_c2 = targets #, y = targets
+    
+    if len(alphas)!=levels:
+        raise ValueError('Error: The length of alphas must be equal to the number of levels')
+
+    loss  = 0
+    for l in range(levels):
+        loss += alphas[l] * criterion(outputs[l],targets[l])
+   
+    # loss = (
+    #     #alpha * criterion(fine_pred, y) +
+    #     alphas[1] * criterion(c2_pred, y_c2) +
+    #     alphas[0] * criterion(c1_pred, y_c1)
+    # )
     return loss
         
 class BCNN_Model:
@@ -419,7 +427,8 @@ class BCNN_Model:
 
                 outputs = model(imgs)
                 loss =  hierarchical_loss(
-                    outputs,targets,criterion = loss_fn,alphas = loss_fn_alpha
+                    outputs,targets,criterion = loss_fn,alphas = loss_fn_alpha,
+                    levels = self.levels
                 )  
                 train_loss += loss 
                 optimizer.zero_grad()
@@ -447,7 +456,8 @@ class BCNN_Model:
 
                     test_pred = model(imgs)
                     test_loss +=  hierarchical_loss(
-                        test_pred,targets,criterion = loss_fn,alphas = loss_fn_alpha
+                        test_pred,targets,criterion = loss_fn,alphas = loss_fn_alpha,
+                        levels = self.levels
                     )  
               
                     # Calculate and accumulate accuracy metric across all batches
