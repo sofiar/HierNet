@@ -513,7 +513,7 @@ class HierImageDataset(Dataset):
             self.labels.insert(0,coarse_labels.tolist())
             self.class_names.insert(0,coarse_names[l])
             self.class_sizes.insert(0,coarse_sizes)
-            self.class_ids.insert(0,list(range(len(groups))))
+            self.class_ids.insert(0,list(range(len(group))))
         
         
         # Other class initializations
