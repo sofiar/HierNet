@@ -441,8 +441,6 @@ def merge_classes(dataset,classes_to_merge_list,new_names_list):
     return dataset_copy
 
 
-
-
 class HierImageDataset(Dataset):
     
     """
@@ -453,9 +451,12 @@ class HierImageDataset(Dataset):
 
     Args:
         base_dataset (ImageDataset): The original dataset from which the hierarchical dataset will be built. 
-        groups (list of str): The names of the classes in `base_dataset` that will be combined into groups
-        coarse_names (list of str): The names assigned to the newly formed coarse groups. 
-        levels (int): The number of levels to include in the hierarchy. (IMPORTANT: For now only working with 2)
+        groups (list): A list of string lists, where each inner list defines how the final nodes are grouped at a given
+                       coarser level. The order of the list is important: the first corresponds to the finest
+                       grouping, and the last to the broadest. 
+        coarse_names (list): A list of string lists, where each inner list defines the names of the groups at a given
+                            coarser level. The order of the list is important: the fist corresponds to the finest grouping
+                            and the last to the broadest. 
         image_transforms (callable, optional): Image transformations (e.g., data augmentations) to apply. Defaults to None.
 
         
@@ -474,7 +475,7 @@ class HierImageDataset(Dataset):
         
     """
        
-    def __init__(self, base_dataset,groups,coarse_names,levels=2, 
+    def __init__(self, base_dataset,groups,coarse_names,
                  image_transforms = None
         ):
         
@@ -483,28 +484,36 @@ class HierImageDataset(Dataset):
         self.seed = base_dataset.seed
         self.image_resolution =  base_dataset.image_resolution
         self.image_paths = base_dataset.image_paths
-        self.levels = levels # for now two 
-
+        
+        
+        if len(coarse_names)!=len(groups):
+            raise ValueError('Error: The length of coarse names and groups must be the same')
+        
+        self.levels = len(groups) + 1
         
         # Create hierarchies
         dataset_copy = copy.deepcopy(base_dataset)
         numpy_old_labels = np.array(dataset_copy.labels)
-        coarse_labels = np.full(len(dataset_copy.labels),None)   
-        coarse_sizes = []
-                        
-        for g in range(len(groups)):
-            curr_coarse_label = g
-            names = groups[g]
-            for name in names: 
-                curr_label = base_dataset.class_names.index(name)
-                idx_label = np.where(numpy_old_labels == curr_label)
-                coarse_labels[idx_label] = curr_coarse_label
-            coarse_sizes.append(sum(coarse_labels==curr_coarse_label))
+        self.labels = [dataset_copy.labels]
+        self.class_names = [dataset_copy.class_names]
+        self.class_sizes = [dataset_copy.class_sizes]
+        self.class_ids = [dataset_copy.class_ids]
+                                
+        for l, group in enumerate(groups):
+            coarse_labels = np.full(len(dataset_copy.labels),None)   
+            coarse_sizes = []
+            for i, names in enumerate(group):
+                curr_coarse_label = i
+                for name in names: 
+                    curr_label = base_dataset.class_names.index(name)
+                    idx_label = np.where(numpy_old_labels == curr_label)
+                    coarse_labels[idx_label] = curr_coarse_label
+                coarse_sizes.append(sum(coarse_labels==curr_coarse_label))
 
-        self.labels = [coarse_labels.tolist(),dataset_copy.labels]
-        self.class_names = [coarse_names,dataset_copy.class_names]
-        self.class_sizes = [coarse_sizes, dataset_copy.class_sizes]
-        self.class_ids = [list(range(len(groups))),dataset_copy.class_ids]
+            self.labels.insert(0,coarse_labels.tolist())
+            self.class_names.insert(0,coarse_names[l])
+            self.class_sizes.insert(0,coarse_sizes)
+            self.class_ids.insert(0,list(range(len(groups))))
         
         
         # Other class initializations
@@ -672,4 +681,234 @@ class HierImageDataset(Dataset):
         )
 
         return train_loader, val_loader, test_loader   
+        
+# class HierImageDataset(Dataset):
+    
+#     """
+#     A custom PyTorch Dataset for creating a dataset with hierarchical labels
+
+#     This class handles:
+#     - Optional image transforms for data augmentation
+
+#     Args:
+#         base_dataset (ImageDataset): The original dataset from which the hierarchical dataset will be built. 
+#         groups (list of str): The names of the classes in `base_dataset` that will be combined into groups
+#         coarse_names (list of str): The names assigned to the newly formed coarse groups. 
+#         levels (int): The number of levels to include in the hierarchy. (IMPORTANT: For now only working with 2)
+#         image_transforms (callable, optional): Image transformations (e.g., data augmentations) to apply. Defaults to None.
+
+        
+#     Attributes:
+#         data_directory (str): Path to the dataset root directory (from base_dataset).
+#         data_subdirectories (list of str): Subdirectories with additional images (from base_dataset).
+#         seed (int): Random seed used for sampling (from base_dataset).
+#         class_names (list): List by level with sorted class names included in the dataset.
+#         class_sizes (torch.Tensor): List by level with the actual sampled size per class.
+#         class_ids (list): List by level with numeric ID for each class (aligned with `class_names`).
+#         image_paths (list): List of file paths to all sampled images (from base_dataset).
+#         labels (list): List by level with numeric class IDs corresponding to each image.
+#         image_resolution (int): Size to which each image is resized (from base_dataset).
+#         image_transforms (callable or None): Image transformations applied during training or inference.
+#         format_file (str): Format of images files. Default: '.tif (from base_dataset)' 
+        
+#     """
+       
+#     def __init__(self, base_dataset,groups,coarse_names,levels=2, 
+#                  image_transforms = None
+#         ):
+        
+#         self.data_directory = base_dataset.data_directory
+#         self.data_subdirectories = base_dataset.data_subdirectories
+#         self.seed = base_dataset.seed
+#         self.image_resolution =  base_dataset.image_resolution
+#         self.image_paths = base_dataset.image_paths
+#         self.levels = levels # for now two 
+
+        
+#         # Create hierarchies
+#         dataset_copy = copy.deepcopy(base_dataset)
+#         numpy_old_labels = np.array(dataset_copy.labels)
+#         coarse_labels = np.full(len(dataset_copy.labels),None)   
+#         coarse_sizes = []
+                        
+#         for g in range(len(groups)):
+#             curr_coarse_label = g
+#             names = groups[g]
+#             for name in names: 
+#                 curr_label = base_dataset.class_names.index(name)
+#                 idx_label = np.where(numpy_old_labels == curr_label)
+#                 coarse_labels[idx_label] = curr_coarse_label
+#             coarse_sizes.append(sum(coarse_labels==curr_coarse_label))
+
+#         self.labels = [coarse_labels.tolist(),dataset_copy.labels]
+#         self.class_names = [coarse_names,dataset_copy.class_names]
+#         self.class_sizes = [coarse_sizes, dataset_copy.class_sizes]
+#         self.class_ids = [list(range(len(groups))),dataset_copy.class_ids]
+        
+        
+#         # Other class initializations
+#         self.image_resolution = base_dataset.image_resolution
+#         self.image_transforms = image_transforms
+        
+        
+#     def __len__(self):
+
+#         """
+#         Returns the number of samples in the Dataset.
+#         """
+
+#         return len(self.image_paths)
+    
+#     def __getitem__(self, idx):
+
+#         """
+#         Returns the image and labels of specified sample.
+
+#         Args:
+#             idx (int): Index of specified sample.
+#         """
+        
+#         image = Image.open(self.image_paths[idx]).convert('L')
+#         labels = tuple(
+#             torch.tensor(self.labels[i][idx], dtype=torch.long)
+#             for i in range(self.levels)
+#         )
+#         if self.image_transforms:
+#             image = self.image_transforms(image)
+
+#         image = image.repeat(3, 1, 1)
+        
+#         return image, labels
+    
+    
+#     def print_dataset_details(self):
+
+#         """
+#         Prints the class distribution of the Dataset.
+
+#         """
+
+#         print(f'\nTotal Dataset: Size = {len(self)}| Levels = {self.levels}')
+        
+#         for l in range(self.levels):
+#             level_counts = dict(Counter(self.labels[l]))
+#             for class_id, class_name in zip(self.class_ids[l], self.class_names[l]):
+#                 class_prop = level_counts[class_id] / len(self)
+
+#                 print(
+#                     f'Level: {l} | Class Name: {class_name} | Class Label: {class_id}' +
+#                     f'| Count: {level_counts[class_id]} | Prop: {class_prop:.2f}'
+#                 )
+                
+    
+#     def split_train_test_val(
+#         self, train_prop: float = 0.7, val_prop: float = 0.1, test_prop: float = 0.2
+#     ):
+
+#         """
+#         Returns indices corresponding to the train, validation and test subsets of the Dataset.
+
+#         Args:
+#             trian_prop (float): Proportion of samples to allocate to the train subset.
+#             val_prop (float): Proportion of samples to allocate to the validation subset.
+#             test_prop (float): Proportion of samples to allocate to the test subset.
+#         """
+
+#         train_split, val_split, test_split = random_split(
+#             range(len(self)),
+#             lengths = [train_prop, val_prop, test_prop],
+#             generator = torch.Generator().manual_seed(self.seed)
+#         )
+
+#         return train_split.indices, val_split.indices, test_split.indices
+    
+#     def append_image_transforms(
+#         self, image_transforms: transforms.Compose = None, replace: bool = False
+#         ):        
+#         """
+#         Appends image transformations to existing transformation pipeline or replaces.
+#         If multiple `ToTensor()` transformations are included in the resulting pipeline, only the last instance is kept.
+#         If there are no `ToTensor()` transformations in the resulting pipeline, it is appended.
+
+#         Args:
+#             image_transforms(transfors.Compose, optional): Iterable of image transformations to append.
+#             replace (bool): Specifies whether to replace with or append the above image_transforms.
+#         """
+        
+#         if image_transforms is None:
+#             if self.image_transforms is None:
+#                 image_transforms_list = []
+#             else: 
+#                 image_transforms_list = self.image_transforms.transforms
+#         else:
+#             if replace:
+#                 image_transforms_list = image_transforms.transforms
+#             else:
+#                 image_transforms_list = self.image_transforms.transforms + image_transforms.transforms
+
+#         image_transforms_cleaned = []
+#         to_tensor_indices = [i for i, tf in enumerate(image_transforms_list) if isinstance(tf, transforms.ToTensor)]
+
+#         if to_tensor_indices:
+#             last_idx = to_tensor_indices[-1]
+#             image_transforms_cleaned = [tf for i, tf in enumerate(image_transforms_list) if not isinstance(tf, transforms.ToTensor) or i == last_idx]
+#         else:
+#             image_transforms_cleaned = image_transforms_list + [transforms.ToTensor()]
+
+#         self.image_transforms = transforms.Compose(image_transforms_cleaned)
+                    
+#     def create_dataloaders(
+#         self, batch_size: int, train_indices, val_indices, test_indices,
+#         image_transforms: transforms.Compose = None, transform_val: bool = False, 
+#         train_sample_weights: torch.tensor = None
+#     ):
+        
+#         """
+#         Creates the train, validatinon and test DataLoaders required for training a PyTorch model.
+#         If `train_sample_weights` is specified, they are supplied to WeightedRandomSampler for the train subset.
+
+#         Args:
+#             batch_size (int): Sizes of batches to process samples in DataLoader.
+#             train_indices (list): Indices corresponding to the train subset of the Dataset.
+#             val_indices (list): Indices corresponding to the validation subset of the Dataset.
+#             test_indices (list): Indices corresponding to the test subset of the Dataset.
+#             image_transforms (transforms.Compose, optional): Additional image transformations for the train subset.
+#             transform_val (bool): Specifies whether to apply train image transformations to the validation subset.
+#             train_sample_weights (torch.tensor, optional): Contains weights for each sample in the train subset.
+#         """
+
+#         if image_transforms is not None:
+#             dataset_aug = copy.deepcopy(self)
+#             dataset_aug.append_image_transforms(
+#                 image_transforms = image_transforms, verbose = False
+#             )
+        #     train_dataset = Subset(dataset_aug, train_indices)
+        #     if transform_val:
+        #         val_dataset = Subset(dataset_aug, val_indices)
+        #     else:
+        #         val_dataset = Subset(self, val_indices)
+        # else:
+        #     train_dataset = Subset(self, train_indices)
+        #     val_dataset = Subset(self, val_indices)
+        
+        # test_dataset = Subset(self, test_indices)
+
+        # if train_sample_weights is None:
+        #     train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True, 
+        #         generator = torch.Generator().manual_seed(self.seed)
+        #     )
+        # else:
+        #     train_loader = DataLoader(
+        #         train_dataset, batch_size = batch_size, 
+        #         sampler = WeightedRandomSampler(train_sample_weights, num_samples = len(train_sample_weights), replacement = True)
+        #     )
+
+        # val_loader = DataLoader(
+        #     val_dataset, batch_size = batch_size, sampler = SequentialSampler(val_dataset)
+        # )
+        # test_loader = DataLoader(
+        #     test_dataset, batch_size = batch_size, sampler = SequentialSampler(test_dataset)
+        # )
+
+        # return train_loader, val_loader, test_loader   
         
