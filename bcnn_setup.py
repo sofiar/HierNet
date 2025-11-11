@@ -260,6 +260,74 @@ class BcnnVGG(nn.Module):
             return c1_pred, fine_pred     
         
 
+class BcnnResnet50(nn.Module):
+    def __init__(self, dim_outputs:list , levels: int =2, weights_directory = None):
+        super().__init__()
+            
+        self.levels = levels
+        self.weights_path = weights_directory + '/resnet50-0676ba61.pth'
+        base = models.resnet50(weights= None)
+        
+        state_dict = torch.load(self.weights_path, map_location = 'cpu')
+        base.load_state_dict(state_dict, strict=False)
+
+        # Define Blocks
+        
+        self.block1 = nn.Sequential(base.conv1,base.bn1,base.relu,
+                                    base.maxpool,base.layer1,base.layer2) 
+        self.block2 = base.layer3
+        self.block3 = base.layer4
+
+        # Coarse level 1 
+        self.coarse_1 = nn.Sequential(
+            nn.AdaptiveAvgPool2d((1,1)),
+            nn.Flatten(),
+            nn.Linear(512, dim_outputs[0])
+        )        
+        
+        # Coarse level 2 
+        if self.levels ==3:
+            self.coarse_2 = nn.Sequential(
+                nn.AdaptiveAvgPool2d((1,1)),
+                nn.Flatten(),
+                nn.Linear(1024, dim_outputs[1])
+            )
+                
+        # Fine level
+        self.fine_head = nn.Sequential(
+            nn.AdaptiveAvgPool2d((1,1)),
+            nn.Flatten(),
+            nn.Linear(2048, dim_outputs[levels-1])
+        )
+        
+        # Initialize with pretrained weights for shared parts
+        self._init_from_pretrained(base)
+    
+    def _init_from_pretrained(self, base):
+        # Copy matching weights
+        pretrained_dict = base.state_dict()
+        model_dict = self.state_dict()
+        pretrained_dict = {k: v for k, v in pretrained_dict.items()
+                        if k in model_dict and v.shape == model_dict[k].shape}
+        model_dict.update(pretrained_dict)
+        self.load_state_dict(model_dict)
+        
+    def forward(self, x):
+        # Block 1
+        x = self.block1(x)
+        c1_pred = self.coarse_1(x)
+        x = self.block2(x)
+        if self.levels ==3:
+            c2_pred = self.coarse_2(x)
+        x = self.block3(x)
+        fine_pred = self.fine_head(x)
+                
+        # Return predictions depending on the hierarchy depth
+        if self.levels ==3:
+            return c1_pred, c2_pred, fine_pred
+        elif self.levels ==2: 
+            return c1_pred, fine_pred     
+        
 
 ############################ BCNN Model definition #############################
 
@@ -300,9 +368,7 @@ def get_alpha_values(epoch, alphas, thresholds = None):
                         threshold = [20,50]                   
         
                         
-        """
-
-    
+        """    
     if thresholds is None:
         alpha=alphas
     else: 
@@ -344,8 +410,14 @@ class BCNN_Model:
                 weights_directory = self.weights_directory
             )
             #self.weights_path = self.weights_directory + '/.....pth'
+        elif self.model_name == 'resnet50':
+            self.model = BcnnResnet50(
+                dim_outputs=self.dim_outputs,
+                levels = self.levels,
+                weights_directory= self.weights_directory
+            )
         else:
-            raise ValueError('Unsupported model. Select one of vgg16 or others.')  
+            raise ValueError('Unsupported model. Select one of vgg16 or resnet50.')  
                            
         self.model.to(self.device)
        
@@ -471,6 +543,8 @@ class BCNN_Model:
                 train_loss += loss 
                 optimizer.zero_grad()
                 loss.backward()
+                
+                # print gradient norms for coarse head
                 optimizer.step()
                 
                 # Calculate and accumulate accuracy metric across all batches
