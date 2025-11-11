@@ -265,10 +265,7 @@ class BcnnVGG(nn.Module):
 
 
 def hierarchical_loss(outputs, targets,criterion,levels,alphas):
-    
-    # c1_pred, c2_pred = outputs #, fine_pred = outputs
-    # y_c1, y_c2 = targets #, y = targets
-    
+   
     if len(alphas)!=levels:
         raise ValueError('Error: The length of alphas must be equal to the number of levels')
 
@@ -276,13 +273,50 @@ def hierarchical_loss(outputs, targets,criterion,levels,alphas):
     for l in range(levels):
         loss += alphas[l] * criterion(outputs[l],targets[l])
    
-    # loss = (
-    #     #alpha * criterion(fine_pred, y) +
-    #     alphas[1] * criterion(c2_pred, y_c2) +
-    #     alphas[0] * criterion(c1_pred, y_c1)
-    # )
     return loss
+    
+def get_alpha_values(epoch, alphas, thresholds = None):
+    
+    """
+        Set the value of hyperparamter alpha based on the specified thresholds an current epoch.
+
+        Args:
+            epoch (int): Current epoch number
+            alphas (list): List of alpha values for each level. If alpha changes across epochs, provide
+                           a list of lists instead (one list per epoch range)
+            thresholds (list, optional): If alpha remains constant, set it to None.
+                                         Otherwise, provide a list of epoch thresholds indicating when
+                                         alpha should change 
+        Returns:
+            list: Values of alpha corresponding to the current epoch
+                        
+        Example:
+            Case 1 - No changes : 
+                        alpha = [0.5,0.5]
+                        threshold = None
+                        
+            Case 2 - Changes at epoch 20 and 50 : 
+                        alpha = [[0.5,0.5],[0.3,0.7],[0.1,0.9]]
+                        threshold = [20,50]                   
         
+                        
+        """
+
+    
+    if thresholds is None:
+        alpha=alphas
+    else: 
+        n_cuts = len(thresholds)
+        if ((n_cuts+1)!=len(alphas)):
+            raise ValueError('Error: The length of alphas must be equal to the number of thresholds +1 ')
+
+        alpha = alphas[0]    
+        for i, value in enumerate(thresholds):
+            if epoch >= value:
+                alpha = alphas[i+1]
+        
+    return alpha
+
 class BCNN_Model:
 
     def __init__(
@@ -305,9 +339,7 @@ class BCNN_Model:
         # Load model and weights
         if self.model_name == 'vgg16':
             self.model = BcnnVGG(
-                #input_shape=3, 
                 dim_outputs=self.dim_outputs,
-                #resolution=resolution,
                 levels = self.levels,
                 weights_directory = self.weights_directory
             )
@@ -326,7 +358,7 @@ class BCNN_Model:
         Trains the model instance using the specified data loaders and training parameters.
         Not all training parameters are supported. Sample hyperparameters dictionary:
             HYPERPARAMETERS = {
-                'loss_fn': {'type': 'CrossEntropyLoss'}, 
+                'loss_fn': {'type': 'CrossEntropyLoss','alphas':[0.5,0.5]}, 
                 'optimizer': 'Adam', 
                 'lr': 5e-4, 
                 'epochs': 40, 
@@ -349,6 +381,9 @@ class BCNN_Model:
         # Loss function
         loss_fn_spec = hyperparameters['loss_fn']
         loss_fn_alpha = loss_fn_spec['alpha']
+        thresholds_alpha = loss_fn_spec['thresholds']
+        
+        
         if loss_fn_spec['criterion'] == 'CrossEntropyLoss':
             loss_fn = nn.CrossEntropyLoss()
             
@@ -414,6 +449,10 @@ class BCNN_Model:
         start = time.time()
         
         for epoch in range(epochs):
+            
+            # Get alphas value
+            curr_alpha = get_alpha_values(epoch, loss_fn_alpha, thresholds_alpha)
+            print(curr_alpha)
 
             # Train step            
             model.train()
@@ -427,7 +466,7 @@ class BCNN_Model:
 
                 outputs = model(imgs)
                 loss =  hierarchical_loss(
-                    outputs,targets,criterion = loss_fn,alphas = loss_fn_alpha,
+                    outputs,targets,criterion = loss_fn,alphas = curr_alpha,
                     levels = self.levels
                 )  
                 train_loss += loss 
@@ -456,7 +495,7 @@ class BCNN_Model:
 
                     test_pred = model(imgs)
                     test_loss +=  hierarchical_loss(
-                        test_pred,targets,criterion = loss_fn,alphas = loss_fn_alpha,
+                        test_pred,targets,criterion = loss_fn,alphas = curr_alpha,
                         levels = self.levels
                     )  
               
