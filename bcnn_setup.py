@@ -452,7 +452,6 @@ class BCNN_Model:
             
             # Get alphas value
             curr_alpha = get_alpha_values(epoch, loss_fn_alpha, thresholds_alpha)
-            print(curr_alpha)
 
             # Train step            
             model.train()
