@@ -11,171 +11,9 @@ from torchvision import models
 # Base from https://arxiv.org/abs/1709.09890
 
 
-########################## BCNN with VGG16 Architecture ########################
+################################ BCNN modules ##################################
 
-# class VGGBlock(nn.Module):
-#     """
-#     Convolutional block used in VGG-style architecture. 
-    
-#     It consists of a sequence of covolutional layers, each followed by a RELU 
-#     activation and batch normalization. After specified number of convolutional 
-#     layers, a max pooling is applied. 
-    
-#     Args:
-#         in_channels (int): Number of input channels
-#         out_channels (int): Number of output channels
-#         num_cov (int): Number of covolutional layers in the block. 
-    
-#     """
-    
-#     def __init__(self, in_channels:int, out_channels:int, num_conv: int):
-#         super(VGGBlock, self).__init__()
-#         layers = []
-#         for i in range(num_conv):
-#             layers +=[
-#                 nn.Conv2d(
-#                     in_channels = in_channels if i == 0 else out_channels,
-#                     out_channels = out_channels,
-#                     kernel_size = 3,
-#                     padding = 1
-#                 ),
-#                 nn.ReLU(),
-#                 nn.BatchNorm2d(out_channels)
-#             ]
-#         layers +=[nn.MaxPool2d(kernel_size=2,stride=2)]  
-#         self.block = nn.Sequential(*layers)  
-            
-#     def forward(self, x):
-#         return self.block(x)    
-        
-# class CoarseBlock(nn.Module):
-#     """
-#     Fully connected classification block for coarse level predictions. 
-    
-#     It consists of a flattens block that extracted features maps and passes them
-#     through a fully connected layer wit ReLu activations, batch normalization and 
-#     dropout regularization. 
-    
-#     Args: 
-#         feature_extractor (nn.module): A convolutional feature extractor whose outputs 
-#         defines de input size for the first fully connected layer.
-#         coarse_classes (int): Number of outputs classes for the coarse level-prediction.
-#         input_shape (tuple,optional): Shape of the input tensor (channels, height, width). 
-#         Default is (3,64,64).    
-    
-#     """
-    
-#     def __init__(self,feature_extractor,coarse_classes:int, input_shape=(3,64,64)):        
-#         super(CoarseBlock,self).__init__()   
-        
-#         # adapt flattened feature by resolution
-#         with torch.no_grad():
-#             dummy = torch.zeros(1, *input_shape)
-#             feat = feature_extractor(dummy)
-#             in_features = feat.numel()
-        
-        
-#         self.flatten = nn.Flatten()
-#         self.fc_layers = nn.Sequential(
-#             nn.Linear(in_features, 256),
-#             nn.ReLU(),
-#             nn.BatchNorm1d(256),
-#             nn.Dropout(0.5),
-                        
-#             nn.Linear(256,256),
-#             nn.ReLU(),
-#             nn.BatchNorm1d(256),
-#             nn.Dropout(0.5),
-#         )
-        
-#         self.out = nn.Linear(256,coarse_classes)
-    
-#     def forward(self, x):
-#         x = self.flatten(x)
-#         x = self.fc_layers(x)
-#         x = self.out(x) # logits
-#         return x
-     
-         
-# class BcnnVGG(nn.Module):
-#     """
-#     BCNN VGG-Style fir multi-label classification
-    
-#     Args:
-#         input_shape (int): Number of input channels
-#         dim_outputs (list): List with the number of output classes for each hierarchy level. 
-#         resolution (int, optional): Input image resolution. Default is 64
-#         levels (int): Number of hierarchy levels (2 or 3). Default is 2  
-         
-#     """
-    
-    
-#     def __init__(self,input_shape:int, dim_outputs:list,            
-#                  resolution: int = 64,levels=2):
-#         super(BcnnVGG,self).__init__()
-        
-#         self.levels =levels
-        
-#         if self.levels not in [2,3]:
-#             raise ValueError('Error: Level must be 2 or 3.')
-        
-#         if len(dim_outputs)!=levels:
-#             raise ValueError('Error: dim_outputs should be of length levels.')
-                       
-#         self.block_1 = VGGBlock(in_channels=input_shape, out_channels=64,num_conv=2)
-#         self.block_2 = VGGBlock(in_channels=64, out_channels=128,num_conv=2)
-#         feature_extractor = nn.Sequential(self.block_1, self.block_2)
-#         self.coarse1 = CoarseBlock(
-#             feature_extractor,
-#             input_shape = (3,resolution,resolution),
-#             coarse_classes = dim_outputs[0]
-#         )
-#         self.block_3 = VGGBlock(in_channels=128, out_channels=256,num_conv=3)
-#         feature_extractor = nn.Sequential(self.block_1, self.block_2,self.block_3)
-#         if self.levels==3:
-#             self.coarse2 = CoarseBlock(
-#                 feature_extractor,
-#                 input_shape=(3,resolution,resolution),
-#                 coarse_classes=dim_outputs[1]        
-#             )
-#         self.block4 = VGGBlock(in_channels=256,out_channels=512,num_conv=3)
-#         self.block5 = VGGBlock(in_channels=512,out_channels=512,num_conv=3)
-#         feature_extractor = nn.Sequential(
-#             self.block_1, self.block_2,self.block_3,
-#             self.block4,self.block5
-#         )
-#         self.fine = CoarseBlock(
-#             feature_extractor,
-#             coarse_classes=dim_outputs[levels-1]
-#         )
-        
-    
-#     def forward(self,x):
-#         # Block 1 and 2
-#         x = self.block_1(x)
-#         x = self.block_2(x)
-#         c1 = self.coarse1(x)  
-        
-#         # Coarse level 1
-#         c1_pred = F.softmax(c1,dim=1)
-#         x = self.block_3(x)
-        
-#         # Coarse level 2 (only if hierarchical level == 3)
-#         if self.levels ==3:
-#             c2 = self.coarse2(x)
-#             c2_pred = F.softmax(c2,dim=1)
-            
-#         # Final pred
-#         x = self.block4(x)
-#         x = self.block5(x)
-#         fine = self.fine(x)  
-#         fine_pred = F.softmax(fine,dim=1)
-
-#         # Return predictions depending on the hierarchy depth
-#         if self.levels ==3:
-#             return c1_pred, c2_pred, fine_pred
-#         elif self.levels ==2: 
-#             return c1_pred, fine_pred       
+# VGG16 architecure
 
 class BcnnVGG(nn.Module):
     def __init__(self, dim_outputs:list , levels: int =2, weights_directory = None):
@@ -195,7 +33,7 @@ class BcnnVGG(nn.Module):
         base.load_state_dict(state_dict, strict=False)
         
         
-        # Split pretrained VGG into two parts
+        # Split pretrained VGG ino 3 parts
         self.features_block1 = base.features[:19]  
         self.features_block2 = base.features[19:24]
         self.features_block3 = base.features[24:]   
@@ -245,7 +83,6 @@ class BcnnVGG(nn.Module):
         self.load_state_dict(model_dict)
     
     def forward(self, x):
-        # Block 1
         x = self.features_block1(x)
         c1_pred = self.coarse_1(x)
         x = self.features_block2(x)
@@ -259,6 +96,7 @@ class BcnnVGG(nn.Module):
         elif self.levels ==2: 
             return c1_pred, fine_pred     
         
+# Resnet50 architecure
 
 class BcnnResnet50(nn.Module):
     def __init__(self, dim_outputs:list , levels: int =2, weights_directory = None):
@@ -313,7 +151,6 @@ class BcnnResnet50(nn.Module):
         self.load_state_dict(model_dict)
         
     def forward(self, x):
-        # Block 1
         x = self.block1(x)
         c1_pred = self.coarse_1(x)
         x = self.block2(x)
@@ -333,6 +170,21 @@ class BcnnResnet50(nn.Module):
 
 
 def hierarchical_loss(outputs, targets,criterion,levels,alphas):
+    
+    """
+        Loss function with multiple terms.  
+        
+        Args:
+            outputs : output(s) of the PyTorch model
+            targets (tuple): Target values for each level
+            criterion (torch.nn.Module): The criterion to compute the loss
+            levels (int): Number of loss terms .
+            alphas (list): Weights for each loss term 
+            
+        Returns:
+            toch.tensor: the combined loss value. 
+    
+    """
    
     if len(alphas)!=levels:
         raise ValueError('Error: The length of alphas must be equal to the number of levels')
@@ -384,6 +236,34 @@ def get_alpha_values(epoch, alphas, thresholds = None):
     return alpha
 
 class BCNN_Model:
+    
+    """
+        A wrapper for training and evaluating a Branch Convolutional Neural Network (BCNN).
+        
+        This class handles:
+            - Model initialization with pre-trained weights.
+            - Initialization of model instances.
+            
+        Args:
+            weights_directory (str): Path to the diractory cotaining pre-trained weigths.
+            dim_outputs (list): Number of output nodes for each level of hierarchy. 
+            model_name (str, optional): Model to use ('vgg16' of 'resnet50'). Defaults to 'vgg16'
+            device (torch.device, optional): Computation device. Defaults to None.
+            seed (int, optional): Random seed for reproducibility. Defaults to 666.
+            levels (int, optional): Number of levels in the hierarchy. Defaults to 2.
+            
+        Attributes: 
+            model_id (str): Unique identifier for the model intance (based on datetime).
+            weights_directory (str): Path to the pre-trained weights. 
+            dim_outputs (list): Number of output nodes for each level of hierarchy.
+            model_name (str): Architecture used by the model.
+            device (torch.device): Device on which the model runs.
+            seed (int): Random seed used for reproducibility
+            model (torch.nn.Module): The PyTorch model instance with the custom classification head.
+            hyperparameters (dict or None): Dictionary of training hyperparameters (set later).
+            train_results (dict or None): Stores training and evaluation metrics (set later). 
+    
+    """
 
     def __init__(
             self, weights_directory,dim_outputs, 
@@ -430,7 +310,7 @@ class BCNN_Model:
         Trains the model instance using the specified data loaders and training parameters.
         Not all training parameters are supported. Sample hyperparameters dictionary:
             HYPERPARAMETERS = {
-                'loss_fn': {'type': 'CrossEntropyLoss','alphas':[0.5,0.5]}, 
+                'loss_fn': {'type': 'CrossEntropyLoss','alphas':[0.5,0.5], threshold: None}, 
                 'optimizer': 'Adam', 
                 'lr': 5e-4, 
                 'epochs': 40, 
