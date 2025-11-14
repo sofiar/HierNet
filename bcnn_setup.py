@@ -16,6 +16,21 @@ from torchvision import models
 # VGG16 architecure
 
 class BcnnVGG(nn.Module):
+    
+    """
+    
+    PyTorch model intance implenting a Branch Convolutional Neural Network based on 
+    the VGG16 architecture.
+    
+    Args:
+        dim_outputs (list): Number of output nodes for each level of hierarchy.
+        levels (int,optional): Number of levels in the hierarchy. Options are 2 or 3.
+                               Defaults to 2.
+        weights_directory (str): Path to the directory containing pre-trained weigths.    
+    
+    """
+    
+    
     def __init__(self, dim_outputs:list , levels: int =2, weights_directory = None):
         super().__init__()
         
@@ -86,20 +101,32 @@ class BcnnVGG(nn.Module):
         x = self.features_block1(x)
         c1_pred = self.coarse_1(x)
         x = self.features_block2(x)
-        if self.levels ==3:
+        if self.levels==3:
             c2_pred = self.coarse_2(x)
         fine_pred = self.fine_head(x)
                 
         # Return predictions depending on the hierarchy depth
-        if self.levels ==3:
+        if self.levels==3:
             return c1_pred, c2_pred, fine_pred
-        elif self.levels ==2: 
+        elif self.levels==2: 
             return c1_pred, fine_pred     
         
 # Resnet50 architecure
 
 class BcnnResnet50(nn.Module):
-    def __init__(self, dim_outputs:list , levels: int =2, weights_directory = None):
+    
+    """
+    PyTorch model intance implenting a Branch Convolutional Neural Network based on 
+    the Resnet50 architecture.
+    
+    Args:
+        dim_outputs (list): Number of output nodes for each level of hierarchy.
+        levels (int,optional): Number of levels in the hierarchy. Options are 2 or 3.
+                               Defaults to 2.
+        weights_directory (str): Path to the directory containing pre-trained weigths.    
+    
+    """
+    def __init__(self, dim_outputs:list , levels: int = 2, weights_directory = None):
         super().__init__()
             
         self.levels = levels
@@ -110,9 +137,9 @@ class BcnnResnet50(nn.Module):
         base.load_state_dict(state_dict, strict=False)
 
         # Define Blocks
-        
-        self.block1 = nn.Sequential(base.conv1,base.bn1,base.relu,
-                                    base.maxpool,base.layer1,base.layer2) 
+        self.block1 = nn.Sequential(
+            base.conv1, base.bn1, base.relu, base.maxpool, base.layer1, base.layer2
+        ) 
         self.block2 = base.layer3
         self.block3 = base.layer4
 
@@ -245,7 +272,7 @@ class BCNN_Model:
             - Initialization of model instances.
             
         Args:
-            weights_directory (str): Path to the diractory cotaining pre-trained weigths.
+            weights_directory (str): Path to the directory containing pre-trained weigths.
             dim_outputs (list): Number of output nodes for each level of hierarchy. 
             model_name (str, optional): Model to use ('vgg16' of 'resnet50'). Defaults to 'vgg16'
             device (torch.device, optional): Computation device. Defaults to None.
