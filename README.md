@@ -15,7 +15,7 @@ The dataset used here is built from a subset of the original dataset [WHOI-Plank
 * `samples_setup.py`: Defines and constumizes the PyTorch `Dataset` and `HierDataset` classes
 for loading and processing images for training.
 * `model_setup.py`: Defines and constumizes the PyTorch `Model` for training and running inference on flat CNN models using DenseNet121 or ResNet50 architectures.
-* `bcnn_setup.py`: Defines and costimizes the PyTorch `BCNN_Model` for training and runnig inference on Branch convolutional neural networks based on VGG16, Resnet50 or Densenet121 architectures.
+* `bcnn_setup.py`: Defines and costimizes the PyTorch `BCNN_Model` for training and runnig inference on Branch convolutional neural networks based on VGG16, ResNet50 or DenseNet121 architectures.
 * `extra_funcitions.py`: Contains utility function for environment set-up.  
 * `train_baseline.py`:  Trains a baseline CNN with final-node class labels. 
 * `train_bcnn.py`:  Trains a BCNN with 2 or 3 levels. 
