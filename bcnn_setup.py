@@ -192,6 +192,105 @@ class BcnnResnet50(nn.Module):
         elif self.levels ==2: 
             return c1_pred, fine_pred     
         
+# Densenet121 architecure
+
+class BcnnDensenet121(nn.Module):
+    def __init__(self, dim_outputs:list , levels: int=2, weights_directory = None):
+        super().__init__()
+            
+        self.levels = levels
+        base = models.densenet121(weights = None)
+        
+        if weights_directory is not None:
+            weights_path = weights_directory + '/densenet121-a639ec97.pth' 
+            state_dict = torch.load(weights_path, map_location = 'cpu')
+            base.load_state_dict(state_dict, strict=False)
+        
+        if self.levels not in [2,3,4]:
+            raise ValueError('Error: Level must be 2, 3 or 4.')
+        
+        if len(dim_outputs)!=levels:
+            raise ValueError('Error: dim_outputs should be of length levels.')
+        
+        # Split Densenet into four parts
+        self.features_block1 = base.features[:5]
+        self.features_block2 = base.features[5:8]
+        self.features_block3 = base.features[8:10]
+        self.features_block4 = base.features[10:]
+                
+        # Coarse level 1 
+        self.coarse_1 =  nn.Sequential(
+            nn.AdaptiveAvgPool2d((1,1)),
+            nn.Flatten(),
+            nn.Linear(
+                in_features=256,
+                out_features=dim_outputs[0], 
+                bias=True
+            ),           
+        )
+        
+        if levels>=3:
+            # Coarse level 2 
+            self.coarse_2 =  nn.Sequential(
+                nn.AdaptiveAvgPool2d((1,1)),
+                nn.Flatten(),
+                nn.Linear(
+                    in_features=256,
+                    out_features=dim_outputs[1], 
+                    bias=True
+                ),           
+            )
+        
+        if levels==4: 
+            # Coarse level 3 
+            self.coarse_3 =  nn.Sequential(
+                nn.AdaptiveAvgPool2d((1,1)),
+                nn.Flatten(),
+                nn.Linear(
+                    in_features=512,
+                    out_features=dim_outputs[2], 
+                    bias=True
+                ),           
+            )
+                
+        # Fine level
+        self.fine_head =  nn.Sequential(
+            nn.AdaptiveAvgPool2d((1,1)),
+            nn.Flatten(),
+            nn.Linear(
+                in_features=1024,
+                out_features=dim_outputs[(levels-1)], 
+                bias=True
+            ),           
+        )
+    def _init_from_pretrained(self, base):
+        # Copy matching weights
+        pretrained_dict = base.state_dict()
+        model_dict = self.state_dict()
+        pretrained_dict = {k: v for k, v in pretrained_dict.items()
+                        if k in model_dict and v.shape == model_dict[k].shape}
+        model_dict.update(pretrained_dict)
+        self.load_state_dict(model_dict)
+            
+    def forward(self, x):
+        x = self.features_block1(x)
+        c1_pred = self.coarse_1(x)
+        x = self.features_block2(x)
+        if self.levels>=3:
+            c2_pred = self.coarse_2(x)
+        x = self.features_block3(x)
+        if self.levels==4:
+            c3_pred = self.coarse_3(x)
+        x = self.features_block4(x)
+        fine_pred = self.fine_head(x)
+        
+        if self.levels ==2:           
+            return c1_pred, fine_pred 
+        if self.levels ==3:           
+            return c1_pred, c2_pred, fine_pred 
+        if self.levels ==4:           
+            return c1_pred, c2_pred, c3_pred, fine_pred        
+                
 
 ############################ BCNN Model definition #############################
 
@@ -323,8 +422,16 @@ class BCNN_Model:
                 levels = self.levels,
                 weights_directory= self.weights_directory
             )
+        elif self.model_name == 'densenet121':
+            self.model = BcnnDensenet121(
+                dim_outputs=self.dim_outputs,
+                levels = self.levels,
+                weights_directory= self.weights_directory
+            )    
+            
+            
         else:
-            raise ValueError('Unsupported model. Select one of vgg16 or resnet50.')  
+            raise ValueError('Unsupported model. Select one of vgg16, resnet50 or densenet121.')  
                            
         self.model.to(self.device)
        
