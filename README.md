@@ -1,7 +1,7 @@
 # Hierarchical Model for Plankton Classification
 This repository contains scripts to train and test different hierarchical CNN approaches for classifing images of marine plankton. It includes implementations of flat CNN models and branch CNN (BCNN) architectures that leverage hierarchical structures. 
 
-### 📊 Data
+## 📊 Data
 The dataset used here is built from a subset of the original dataset [WHOI-Plankton dataset (2006 to 2014)](https://darchive.mblwhoilibrary.org/collections/aad045e7-1fcf-5650-82ee-c62bd604d225). The hierarchical models were constructed following the hierarchy structure outlined below: 
 
 <p align="center">
@@ -9,7 +9,7 @@ The dataset used here is built from a subset of the original dataset [WHOI-Plank
 </p>
 
 
- ### 📂 Content 
+## 📂 Content 
 
 #### 🧩 Python scripts
 * `samples_setup.py`: Defines and constumizes the PyTorch `Dataset` and `HierDataset` classes
@@ -27,7 +27,7 @@ for loading and processing images for training.
 * `get_bcnn_results.ipynb`: Examines results from BCNN models.
 
 
-### 📄 References
+## 📄 References
 Zhu, X., & Bain, M. (2017). B-CNN: Branch Convolutional Neural Network for Hierarchical Classification. ArXiv, abs/1709.09890.
 
 
