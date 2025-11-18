@@ -6,6 +6,8 @@ from datetime import datetime
 from modular import engine
 from extra_functions import set_seed, extract_metrics_hier
 from torchvision import models
+from itertools import product
+
 
 
 # Base from https://arxiv.org/abs/1709.09890
@@ -671,9 +673,90 @@ class BCNN_Model:
         
         return labels, probs, preds, logits
                     
-                    
-                    
-                    
+    def gridsearch(self, parameter_grid: dict, train_loader, val_loader, scoring_fn):
+
+        """
+        Performs grid search over a set of hyperparameters to identify the best configuration.
+        Sampler parameter grid to search:
+            HYPERPARAMETER_SEARCH_GRID = {
+                'loss_fn': [
+                    {'criterion': 'CrossEntropyLoss', 'alpha': [0.5,0.5], 'thresholds': None},
+                ],  
+                'optimizer': ['Adam'],
+                'lr': [1e-3, 5e-4, 1e-4],
+                'epochs': [50],
+                'scheduler': [
+                    {'type': 'StepLR', 'step_size': 10, 'gamma': 0.1},
+                ],
+                'early_stopping': [
+                    {'patience': 10, 'delta': 0.005},
+                ],
+            }
+
+        Args:
+            parameter_grid (dict): Dictionary where keys are hyperparameter names and values are lists of values to try.
+            train_loader (DataLoader): PyTorch DataLoader for the training dataset.
+            val_loader (DataLoader): PyTorch DataLoader for the validation dataset.
+            scoring_fn (callable): A function to evaluate model predictions (e.g., accuracy_score or f1_score).
+        """
+
+        parameters = list(parameter_grid.keys())
+
+        best_score = float('-inf')
+        best_params = None
+
+        print('\nStarting hyperparameter tuning!')
+
+        start = time.time()
+        for iter, param_values in enumerate(product(*parameter_grid.values())):
+
+            current_parameters = dict(zip(parameters, param_values))
+            print(f'\nStarting Iteration {iter+1}!')
+            print(f'Parameters: {current_parameters}')
+
+            start_iter = time.time()
+
+            # Initiate a new Model object and train based on current parameters
+            current_model = BCNN_Model(
+                weights_directory = self.weights_directory,
+                dim_outputs = self.dim_outputs,
+                model_name = self.model_name,
+                device = self.device,
+                seed = self.seed,
+                levels = self.levels
+            )
+
+            current_model.train(
+                hyperparameters = current_parameters,
+                train_loader = train_loader,
+                val_loader = val_loader,
+                verbose = False
+            )
+
+            # Get predictions and score on validation set
+            labels, _, preds,_ = current_model.predict(val_loader)
+
+            score = 0
+            for l in range(self.levels):
+                score += scoring_fn(labels[l].cpu(), preds[l].cpu())
+            score = score/self.levels    
+
+            elapsed_iter = time.time() - start_iter
+            print(f'Completed Iteration {iter+1}! Time Elapsed {elapsed_iter:.2f} sec. | Score: {score:.4f}')
+
+            # Update parameters if necessary
+            if score > best_score:
+                best_score = score
+                best_params = current_parameters
+            
+            del current_model
+        
+        elapsed = time.time() - start
+        print(f'\nHyperparameter Tuning Finished! Total Time Elapsed: {elapsed:.2f} sec.')
+
+        return best_params, best_score                
+                        
+                        
         
                     
                 
