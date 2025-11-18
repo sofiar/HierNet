@@ -197,6 +197,19 @@ class BcnnResnet50(nn.Module):
 # Densenet121 architecure
 
 class BcnnDensenet121(nn.Module):
+    
+    """
+    
+    PyTorch model intance implenting a Branch Convolutional Neural Network based on 
+    the Densenet121 architecture.
+    
+    Args:
+        dim_outputs (list): Number of output nodes for each level of hierarchy.
+        levels (int,optional): Number of levels in the hierarchy. Options are 2, 3 or 4.
+                               Defaults to 2.
+        weights_directory (str): Path to the directory containing pre-trained weigths.    
+    
+    """
     def __init__(self, dim_outputs:list , levels: int=2, weights_directory = None):
         super().__init__()
             
@@ -417,7 +430,6 @@ class BCNN_Model:
                 levels = self.levels,
                 weights_directory = self.weights_directory
             )
-            #self.weights_path = self.weights_directory + '/.....pth'
         elif self.model_name == 'resnet50':
             self.model = BcnnResnet50(
                 dim_outputs=self.dim_outputs,
@@ -430,8 +442,6 @@ class BCNN_Model:
                 levels = self.levels,
                 weights_directory= self.weights_directory
             )    
-            
-            
         else:
             raise ValueError('Unsupported model. Select one of vgg16, resnet50 or densenet121.')  
                            
