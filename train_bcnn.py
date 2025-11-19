@@ -49,10 +49,10 @@ PLANKTON_CLASSES = [
     'Thalassiosira'
     ]
 
-# Base dataset
+# 1. Base dataset
+
 MAX_CLASS_SIZE = 10000
 RESOLUTION = 64
-
 
 dataset = ImageDataset(
     data_directory = data_directory,
@@ -65,7 +65,8 @@ dataset = ImageDataset(
     seed = SEED
     )
 
-# Merge categories  
+# 2. Merge categories  
+
 classes_to_merge_list = [
         [
             'Guinardia_delicatula',
@@ -82,18 +83,50 @@ dataset =  merge_classes(
     new_names_list=new_names_list
     )
 
+FINAL_NODES = len(dataset.class_names)
 
-# Create hierarchical dataset
+# 3.Create hierarchical dataset
 
-groups = [
-    [
-        'Asterionellopsis','Chaetoceros', 'Lauderia','Pseudonitzschia', 'Eucampia',
-        'Leptocylindrus', 'Skeletonema', 'Dactyliosolen','Thalassiosira',
-        'Guinardia','Cerataulina'
-    ],
-    ['Ditylum', 'Ephemera', 'Coscinodiscus','Corethron','Cylindrotheca']
-]
-coarse_names = ['Colonial', 'Multicellular']
+LEVELS = 3
+
+if LEVELS==2:
+    
+    coarse_names = [['Colonial', 'Unicellular']]
+    groups = [[
+        [
+            'Asterionellopsis','Chaetoceros', 'Lauderia','Pseudonitzschia', 'Eucampia',
+            'Leptocylindrus', 'Skeletonema', 'Dactyliosolen','Thalassiosira',
+            'Guinardia','Cerataulina'
+        ],
+        ['Ditylum', 'Ephemera', 'Coscinodiscus','Corethron','Cylindrotheca']
+    ]]
+    
+elif LEVELS ==3:
+    
+    coarse_names1 = ['Colonial', 'Unicellular']
+    groups1 = [
+        [
+            'Asterionellopsis','Chaetoceros', 'Lauderia','Pseudonitzschia', 'Eucampia',
+            'Leptocylindrus', 'Skeletonema', 'Dactyliosolen','Thalassiosira',
+            'Guinardia','Cerataulina'
+        ],
+        ['Ditylum', 'Ephemera', 'Coscinodiscus','Corethron','Cylindrotheca']
+    ]
+
+    coarse_names2 = ['C-Spines','C-NoSpines','U-Spines','U-NoSpines']
+    groups2 = [
+        ['Chaetoceros', 'Lauderia','Asterionellopsis'],
+        [
+            'Pseudonitzschia', 'Leptocylindrus','Eucampia','Skeletonema',
+            'Dactyliosolen','Thalassiosira','Guinardia','Cerataulina'
+        ],
+        ['Ditylum','Corethron'],
+        ['Cylindrotheca','Ephemera', 'Coscinodiscus']
+    ]
+
+    coarse_names = [coarse_names2, coarse_names1]
+    groups = [groups2, groups1]
+        
 
 hier_dataset = HierImageDataset(
     base_dataset=dataset,
@@ -101,6 +134,11 @@ hier_dataset = HierImageDataset(
     coarse_names = coarse_names
 )
 hier_dataset.print_dataset_details()
+
+dim_outputs = []
+for element in coarse_names:
+    dim_outputs.insert(0,len(element))
+dim_outputs.append(FINAL_NODES)
 
 ##################### Add Image Transformations to Pipeline ####################
 
@@ -141,22 +179,73 @@ train_loader, val_loader, test_loader = hier_dataset.create_dataloaders(
     train_sample_weights = None
 )
 
-########################## Define and train model ##############################
+# ########################## Define and train model ##############################
+
+MODEL_NAME = 'densenet121' 
 
 model = BCNN_Model(
     weights_directory = './pre_trained_weights',
-    dim_outputs = [2,7],
-    levels = 2,
-    device = device
+    dim_outputs = dim_outputs,
+    levels = LEVELS,
+    device = device,
+    model_name = MODEL_NAME
 )
-HYPERPARAMETERS = {
-    'loss_fn': {'criterion': 'CrossEntropyLoss','alpha': [0.5,0.5]}, 
-    'optimizer': 'Adam', 
-    'lr': 0.001, 
-    'epochs': 50, 
-    'scheduler':{'type': 'StepLR', 'step_size': 10, 'gamma':0.1},
-    'early_stopping': {'patience': 15, 'delta': 0.0005}
+
+# ########################## Hyperparameter tuning ##############################
+
+# Specify Parameter Search Grid 
+TUNE = True
+
+HYPERPARAMETER_SEARCH_GRID = {
+    'loss_fn': [
+        {'criterion': 'CrossEntropyLoss', 'alpha': [1/3,1/3,1/3],'thresholds': None},
+        {'criterion': 'CrossEntropyLoss', 'alpha': [[1/3,1/3,1/3],[0.2,0.2,0.6]],'thresholds':[20]},
+    ],  
+    'optimizer': ['Adam'],
+    'lr': [1e-4,5e-4],
+    'epochs': [50],
+    'scheduler': [
+        {'type': 'StepLR', 'step_size': 10, 'gamma': 0.1},
+        {'type': 'CosineAnnealingLR', 'T_max': 50},
+    ],
+    'early_stopping': [
+        {'patience': 20, 'delta': 0.0005},
+    ],
 }
+
+
+def accuracy_fn(y_true, y_pred):
+    
+    """ Defines accuracy measure as the percentage of samples well classified"""
+    
+    correct = torch.eq(y_true, y_pred).sum().item()
+    acc = (correct / len(y_pred)) * 100
+    return acc
+
+
+if TUNE:
+    
+    HYPERPARAMETERS,_ = model.gridsearch(
+        parameter_grid = HYPERPARAMETER_SEARCH_GRID,
+        train_loader = train_loader,
+        val_loader = val_loader,
+        scoring_fn = accuracy_fn 
+    )
+else: 
+    
+    HYPERPARAMETERS = {
+        'loss_fn': {
+            'criterion': 'CrossEntropyLoss',
+            'alpha':  [[0.5,0.25,0.25],[0.2,0.4,0.4],[0.1,0.1,0.8]],
+            'thresholds': [15,20]
+            }, 
+        'optimizer': 'Adam', 
+        'lr': 5e-4, 
+        'epochs': 60, 
+        'scheduler':{'type': 'CosineAnnealingLR', 'T_max': 50},
+        'early_stopping': {'patience': 15, 'delta': 0.0005},
+        #'early_stopping': None
+    }
 HYPERPARAMETERS['batch_size'] = BATCH_SIZE
 
 model.train(
