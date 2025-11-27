@@ -489,15 +489,15 @@ class HierImageDataset(Dataset):
         if len(coarse_names)!=len(groups):
             raise ValueError('Error: The length of coarse names and groups must be the same')
         
-        self.levels = len(groups) + 1
+        self.levels = len(groups) 
         
         # Create hierarchies
         dataset_copy = copy.deepcopy(base_dataset)
         numpy_old_labels = np.array(dataset_copy.labels)
-        self.labels = [dataset_copy.labels]
-        self.class_names = [dataset_copy.class_names]
-        self.class_sizes = [dataset_copy.class_sizes]
-        self.class_ids = [dataset_copy.class_ids]
+        self.labels = []
+        self.class_names = []
+        self.class_sizes = []
+        self.class_ids = []
                                 
         for l, group in enumerate(groups):
             coarse_labels = np.full(len(dataset_copy.labels),None)   
@@ -569,6 +569,9 @@ class HierImageDataset(Dataset):
                     f'Level: {l} | Class Name: {class_name} | Class Label: {class_id}' +
                     f'| Count: {level_counts[class_id]} | Prop: {class_prop:.2f}'
                 )
+            if None in level_counts.keys():
+                print(f'\n Important: At level {l} there are {level_counts[None]} samples with missing labels\n')    
+
                 
     
     def split_train_test_val(
