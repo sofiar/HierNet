@@ -540,7 +540,10 @@ class HierImageDataset(Dataset):
         
         image = Image.open(self.image_paths[idx]).convert('L')
         labels = tuple(
-            torch.tensor(self.labels[i][idx], dtype=torch.long)
+            torch.tensor(
+                -1 if self.labels[i][idx] is None else self.labels[i][idx], 
+                dtype=torch.long
+            )
             for i in range(self.levels)
         )
         if self.image_transforms:

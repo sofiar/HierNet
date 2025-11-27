@@ -483,10 +483,9 @@ class BCNN_Model:
         
         
         if loss_fn_spec['criterion'] == 'CrossEntropyLoss':
-            loss_fn = nn.CrossEntropyLoss()
-            
+            loss_fn = nn.CrossEntropyLoss(ignore_index=-1)
         else:
-            raise ValueError('Unsupported loss function. Select one of CrossEntropyLoss.')
+            raise ValueError('Unsupported loss function. Select CrossEntropyLoss.')
         
         # Optimizer
         if hyperparameters['optimizer'] == 'Adam':
