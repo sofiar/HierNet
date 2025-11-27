@@ -7,9 +7,8 @@ This repository contains scripts to train and test different hierarchical CNN ap
 The dataset used here was provided by the Ministry of Natural Resources and Forestry (Ontario, Canada) . The hierarchical models were constructed following the hierarchy structure outlined below
 
 <p align="center">
-<img width="720" height="405" alt="Flow chart" src="https://github.com/user-attachments/assets/9b633f49-46eb-4e3d-aff7-598aa8cb225e" />
+<img width="720" height="405" alt="Flow chart" src="https://github.com/user-attachments/assets/95904243-5a5e-47bf-87a1-89121ce51c6f" />
 </p>
-
 
 ## 📂 Content 
 
