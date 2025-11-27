@@ -505,7 +505,8 @@ class HierImageDataset(Dataset):
             for i, names in enumerate(group):
                 curr_coarse_label = i
                 for name in names: 
-                    curr_label = base_dataset.class_names.index(name)
+                    get_ind = base_dataset.class_names.index(name)
+                    curr_label = base_dataset.class_ids[get_ind]
                     idx_label = np.where(numpy_old_labels == curr_label)
                     coarse_labels[idx_label] = curr_coarse_label
                 coarse_sizes.append(sum(coarse_labels==curr_coarse_label))
