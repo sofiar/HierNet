@@ -1,8 +1,10 @@
-# Hierarchical Model for Plankton Classification
-This repository contains scripts to train and test different hierarchical CNN approaches for classifing images of marine plankton. It includes implementations of flat CNN models and branch CNN (BCNN) architectures that leverage hierarchical structures. 
+# Hierarchical Model for Zooplankton Classification
+This repository contains scripts to train and test different hierarchical CNN approaches for classifing images of fresha water zooplankton. It includes implementations of flat CNN models and branch CNN (BCNN) architectures that leverage hierarchical structures. 
+
+🛑 **ATTENTION**: This branch is currently under construction.
 
 ## 📊 Data
-The dataset used here is built from a subset of the original dataset [WHOI-Plankton dataset (2006 to 2014)](https://darchive.mblwhoilibrary.org/collections/aad045e7-1fcf-5650-82ee-c62bd604d225). The hierarchical models were constructed following the hierarchy structure outlined below: 
+The dataset used here was provided by the Ministry of Natural Resources and Forestry (Ontario, Canada) . The hierarchical models were constructed following the hierarchy structure outlined below
 
 <p align="center">
 <img width="720" height="405" alt="Flow chart" src="https://github.com/user-attachments/assets/9b633f49-46eb-4e3d-aff7-598aa8cb225e" />
