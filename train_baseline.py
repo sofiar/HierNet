@@ -15,10 +15,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f'Using device: {device}')
 
 # Specify paths
-data_directory = '/data/WHOI-Plankton'
-data_subdirectories = [
-    '2006','2007','2008','2009','2010','2011', '2012','2013','2014'
-    ]
+data_directory = '/data/Hier-Zooplankton'
+data_subdirectories = ['IssacData']
 
 # Specify other environment variables
 SEED = 666
@@ -26,313 +24,96 @@ set_seed(SEED)
 
 ############################# Data preparation #################################
 
-# Set level
-LEVEL = 'spines' # subphylum - class - subclass - order - family - genus 
-                # col-uni - spines - name'
+# 1. Set level
+LEVEL = 'level2' # Zoop-YN , Level1, Level2
+                
+ZOOPLANKTON_CLASSES = [
+     'Debris',
+     'Bubbles',
+     'Calanoid',
+     'Cyclopoid',
+     'Cladocera',
+     'Copepoda',
+     'Harpacticoid',
+     'Bosminidae',
+     'Daphnia',
+]
 
-# Set classes
-PLANKTON_CLASSES = [
-     'Asterionellopsis',
-    'Cylindrotheca',
-    'Cerataulina',
-    'Chaetoceros',
-    'Chaetoceros_didymus_flagellate',
-    'Corethron',
-    'Coscinodiscus',
-    'Dactyliosolen',
-    'Ditylum',
-    'Eucampia',
-    'Ephemera',
-    'Guinardia_delicatula',
-    'Guinardia_striata',
-    'G_delicatula_external_parasite',
-    'Leptocylindrus',
-    'Lauderia',
-    'Pseudonitzschia',
-    #'Rhizosolenia',
-    'Skeletonema',
-    'Thalassiosira',
-    #'Thalassionema'
+if LEVEL == 'Zoop-YN': # (Zooplankton Yes - Zooplankton No)
+   
+    classes_to_merge_list = [
+        [
+            'Cladocera',
+            'Bosminidae',
+            'Daphnia',
+            'Copepoda',
+            'Cyclopoid',
+            'Harpacticoid',
+            'Calanoid'            
+        ],
+        ['Bubbles','Debris']
     ]
+    new_names_list = ['Zoop-Y','Zoop-N' ]
 
-# Create ImageDataset
+elif LEVEL=='level1': # (Cladocera - Copepoda - Bubbles - Debris)
+    
+    classes_to_merge_list = [
+        ['Cladocera','Bosminidae','Daphnia'],
+        ['Copepoda','Cyclopoid','Harpacticoid','Calanoid'],
+        ['Bubbles'],
+        ['Debris']
+    ]
+    new_names_list = ['Cladocera','Copepoda','Bubbles','Debris']
+    
+    
+elif LEVEL=='level2': #(Final nodes)    
+    
+    ZOOPLANKTON_CLASSES = [
+        'Debris',
+        'Bubbles',
+        'Calanoid',
+        'Cyclopoid',
+        'Harpacticoid',
+        'Bosminidae',
+        'Daphnia',
+    ]
+    
+else: 
+    raise ValueError(
+        'Unsupported level. Select one of: Zoop-YN, level1 or level2'
+    )
+   
+# 2. Base dataset
+
 MAX_CLASS_SIZE = 10000
+RESOLUTION = 64
+SEED = 565
 
-dataset_selected = ImageDataset(
+dataset = ImageDataset(
     data_directory = data_directory,
-    data_subdirectories = data_subdirectories,
-    class_names = PLANKTON_CLASSES,
+    data_subdirectories = ['IssacData'],
+    class_names = ZOOPLANKTON_CLASSES,
     max_class_size = MAX_CLASS_SIZE,
-    image_resolution = 64,
+    image_resolution = RESOLUTION,
     image_transforms = None,
-    format_file = '.png',
+    format_file = '.tif',
     seed = SEED
     )
 
-# Merge categories  
 
-# 1. SCSOFG
-if LEVEL == 'genus': # (14 final nodes)
-    
-    classes_to_merge_list = [
-        [
-            'Guinardia_delicatula',
-            'Guinardia_striata',
-            'G_delicatula_external_parasite'
-        ],
-        ['Chaetoceros','Chaetoceros_didymus_flagellate']
-    ]
-    new_names_list = ['Guinardia','Chaetoceros' ]
+# 3. Merge categories  
 
-elif LEVEL=='family': # (10 final nodes)
-    
-    classes_to_merge_list =[
-        ['Cylindrotheca',  'Pseudonitzschia'],
-        ['Thalassionema'],
-        ['Chaetoceros','Chaetoceros_didymus_flagellate'],
-        ['Leptocylindrus'],
-        ['Cerataulina', 'Eucampia'],
-        ['Ditylum'],
-        ['Skeletonema'],
-        ['Thalassiosira'],
-        ['Corethron'],
-        [
-            'Dactyliosolen',
-            'Guinardia_delicatula',
-            'Guinardia_striata',
-            'G_delicatula_external_parasite',
-            'Rhizosolenia'
-        ]
-    ]
-    
-    new_names_list = [
-        'Bacillariaceae',
-        'Thalassionematecaea',
-        'Chaetocerotacea',
-        'Leptocylindaceae',
-        'Hemiaulaceae',
-        'Lithodesmiaceae',
-        'Skeletonematacea'
-        'Thalassiosiraceae',
-        'Corethraceae',
-        'Rhizosoleniaceae'
-    ]
-    
-elif LEVEL=='order': #(8 final nodes)
-    
-    classes_to_merge_list = [
-        ['Cylindrotheca',  'Pseudonitzschia'],
-        ['Thalassionema'],
-        ['Chaetoceros','Chaetoceros_didymus_flagellate','Leptocylindrus'],
-        ['Cerataulina', 'Eucampia'],
-        ['Ditylum'],
-        ['Skeletonema','Thalassiosira'],
-        ['Corethron'],
-        [
-            'Dactyliosolen',
-            'Guinardia_delicatula',
-            'Guinardia_striata',
-            'G_delicatula_external_parasite',
-            'Rhizosolenia'
-        ]        
-    ]
-    
-    new_names_list = [
-        'Bacillariales',
-        'Thalassionematales',
-        'Chaetocerotales',
-        'Hemiaulales',
-        'Lethodesmiales',
-        'Thalassiosoreles',
-        'Corethales',
-        'Rhyzosoleniophycidae'
-    ]
-    
-elif LEVEL=='subclass': #(6 final nodes)
-    
-    classes_to_merge_list = [
-        ['Cylindrotheca','Pseudonitzschia'],
-        ['Thalassionema'],
-        [
-            'Chaetoceros',
-            'Chaetoceros_didymus_flagellate',
-            'Leptocylindrus',
-            'Cerataulina',
-            'Eucampia'
-        ],
-        ['Ditylum','Skeletonema','Thalassiosira'],
-        ['Corethron'],
-        [
-            'Guinardia_delicatula',
-            'Guinardia_striata',
-            'G_delicatula_external_parasite',
-            'Dactyliosolen',
-            'Rhizosolenia'
-        ]   
-    ]
-
-
-    new_names_list = [
-        'Bacillariophycidae',
-        'Fragilariophycidae',
-        'Chaetocerothophycidae',
-        'Thalassiosirophycidae',
-        'Corethopycidae',
-        'Rhyzosoleniophycidae'
-    ]
-    
-elif LEVEL=='class': #(3 final nodes)
-    
-    classes_to_merge_list = [
-        ['Cylindrotheca','Pseudonitzschia','Thalassionema'],
-        [
-            'Chaetoceros',
-            'Chaetoceros_didymus_flagellate',
-            'Leptocylindrus',
-            'Cerataulina',
-            'Eucampia',
-            'Ditylum',
-            'Skeletonema',
-            'Thalassiosira'
-        ],
-        [
-            'Corethron',
-            'Guinardia_delicatula',
-            'Guinardia_striata',
-            'G_delicatula_external_parasite',
-            'Dactyliosolen',
-            'Rhizosolenia'
-        ]   
-    ]
-    
-    new_names_list = ['Bacillorhycaea','Mediophycaea','Coscinodiscophyceae']
-
-elif LEVEL=='subphylum': #(2 final nodes)
-    
-    classes_to_merge_list = [
-        [
-            'Cylindrotheca',
-            'Pseudonitzschia',
-            'Thalassionema'
-            'Chaetoceros',
-            'Chaetoceros_didymus_flagellate',
-            'Leptocylindrus',
-            'Cerataulina',
-            'Eucampia',
-            'Ditylum',
-            'Skeletonema',
-            'Thalassiosira'
-        ],
-        [
-            'Corethron',
-            'Guinardia_delicatula',
-            'Guinardia_striata',
-            'G_delicatula_external_parasite',
-            'Dactyliosolen',
-            'Rhizosolenia'
-        ]   
-    ]
-    new_names_list = ['Bacillariophytina','Coscinodiscophytina']
-    
-    
-# 2. Colonial - Unicellular
-elif LEVEL == 'col-uni': 
-    
-    classes_to_merge_list = [
-        [
-            'Chaetoceros',
-            'Chaetoceros_didymus_flagellate',
-            'Cerataulina',
-            'Lauderia',
-            'Asterionellopsis',
-            'Pseudonitzschia',
-            'Leptocylindrus',
-            'Eucampia',
-            'Skeletonema',
-            'Dactyliosolen',
-            'Thalassiosira',
-            'Guinardia_delicatula',
-            'Guinardia_striata',
-            'G_delicatula_external_parasite'
-        ],
-        [
-            'Corethron',
-            'Ditylum',
-            'Cylindrotheca',
-            'Coscinodiscus',
-            'Ephemera'
-        ]
+if LEVEL in ['Zoop-YN','level1']:
         
-    ]
-    new_names_list = ['Colonial','Unicellular' ]
-
-
-elif LEVEL == 'spines': 
-    
-    classes_to_merge_list = [
-        [
-            'Chaetoceros',
-            'Chaetoceros_didymus_flagellate',
-            'Lauderia',
-            'Asterionellopsis'
-        ],
-        [   
-            'Cerataulina'
-            'Pseudonitzschia',
-            'Leptocylindrus',
-            'Eucampia',
-            'Skeletonema',
-            'Dactyliosolen',
-            'Thalassiosira',
-            'Guinardia_delicatula',
-            'Guinardia_striata',
-            'G_delicatula_external_parasite'
-        ],
-        [
-            'Corethron',
-            'Ditylum'
-        ],
-        [
-            'Cylindrotheca',
-            'Coscinodiscus',
-            'Ephemera'
-        ]
-    ]
-    new_names_list = ['C-Spines','C-NoSpines','U-Spines','U-NoSpines' ]
-    
-
-elif LEVEL == 'name': 
-    
-    classes_to_merge_list = [
-        [
-            'Chaetoceros',
-            'Chaetoceros_didymus_flagellate',
-        ],
-        [   
-            'Guinardia_delicatula',
-            'Guinardia_striata',
-            'G_delicatula_external_parasite'
-        ]        
-    ]
-    new_names_list = ['Chaetoceros','Guinardia' ]
-    
-
-    
-else:
-    raise ValueError(
-        'Unsupported level. Select one of: subphylum, class, subclass, '
-        'order, family, genus, col-uni, spines or name'
-    )
-    
-
-# Define final dataset
-dataset =  merge_classes(
-    dataset = dataset_selected,
-    classes_to_merge_list=classes_to_merge_list,
-    new_names_list=new_names_list
-    )
-
+    # Define final dataset
+    dataset =  merge_classes(
+        dataset = dataset,
+        classes_to_merge_list=classes_to_merge_list,
+        new_names_list=new_names_list
+        )
+dataset.print_dataset_details()
 NUM_CLASSES = len(dataset.class_ids)
+
 
 ##################### Add Image Transformations to Pipeline ####################
 
@@ -394,7 +175,7 @@ HYPERPARAMETERS = {
     'loss_fn': {'type': 'CrossEntropyLoss', 'weights': None}, 
     'optimizer': 'Adam', 
     'lr': 5e-4, 
-    'epochs': 50, 
+    'epochs': 60, 
     'scheduler':{'type': 'CosineAnnealingLR', 'T_max': 50},
     'early_stopping': {'patience': 15, 'delta': 0.005}
 }
@@ -415,7 +196,7 @@ labels, probs, preds, logits = model.predict(test_loader = test_loader)
 
 MODEL_ID = model.model_id
 #SUFFIX = '' # UPDATE FOR CUSTOM SUFFIX
-run_name = f'{MODEL_ID}_{MODEL_NAME}_{LEVEL}'
+run_name = f'ZOOP_{MODEL_ID}_{MODEL_NAME}_{LEVEL}'
 results_directory = '/home/ruizsuar/Plankton-h-classifier/Models_results'
 
 metadata = {
