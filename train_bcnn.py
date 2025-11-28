@@ -16,10 +16,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f'Using device: {device}')
 
 # Specify paths
-data_directory = '/data/WHOI-Plankton'
-data_subdirectories = [
-    '2006','2007','2008','2009','2010','2011', '2012','2013','2014'
-    ]
+data_directory = '/data/Hier-Zooplankton'
+data_subdirectories = ['IssacData']
 
 # Specify other environment variables
 SEED = 666
@@ -27,27 +25,17 @@ set_seed(SEED)
 
 ############################# Data preparation #################################
 
-PLANKTON_CLASSES = [
-    'Asterionellopsis',
-    'Cylindrotheca',
-    'Cerataulina',
-    'Chaetoceros',
-    'Chaetoceros_didymus_flagellate',
-    'Corethron',
-    'Coscinodiscus',
-    'Dactyliosolen',
-    'Ditylum',
-    'Eucampia',
-    'Ephemera',
-    'Guinardia_delicatula',
-    'Guinardia_striata',
-    'G_delicatula_external_parasite',
-    'Leptocylindrus',
-    'Lauderia',
-    'Pseudonitzschia',
-    'Skeletonema',
-    'Thalassiosira'
-    ]
+ZOOPLANKTON_CLASSES = [
+     'Debris',
+     'Bubbles',
+     'Copepoda',
+     'Calanoid',
+     'Cyclopoid',
+     'Harpacticoid',
+     'Cladocera',
+     'Bosminidae',
+     'Daphnia',
+]
 
 # 1. Base dataset
 
@@ -57,80 +45,55 @@ RESOLUTION = 64
 dataset = ImageDataset(
     data_directory = data_directory,
     data_subdirectories = data_subdirectories,
-    class_names = PLANKTON_CLASSES,
+    class_names = ZOOPLANKTON_CLASSES,
     max_class_size = MAX_CLASS_SIZE,
     image_resolution = RESOLUTION,
     image_transforms = None,
-    format_file = '.png',
+    format_file = '.tif',
     seed = SEED
     )
 
-# 2. Merge categories  
-
-classes_to_merge_list = [
-        [
-            'Guinardia_delicatula',
-            'Guinardia_striata',
-            'G_delicatula_external_parasite'
-        ],
-        ['Chaetoceros','Chaetoceros_didymus_flagellate']
-    ]
-new_names_list = ['Guinardia','Chaetoceros' ]
-
-dataset =  merge_classes(
-    dataset = dataset,
-    classes_to_merge_list=classes_to_merge_list,
-    new_names_list=new_names_list
-    )
-
-FINAL_NODES = len(dataset.class_names)
-
-# 3.Create hierarchical dataset
+# 2.Create hierarchical dataset
 
 LEVELS = 3
 
-if LEVELS==2:
-    
-    coarse_names = [['Colonial', 'Unicellular']]
-    groups = [[
-        [
-            'Asterionellopsis','Chaetoceros', 'Lauderia','Pseudonitzschia', 'Eucampia',
-            'Leptocylindrus', 'Skeletonema', 'Dactyliosolen','Thalassiosira',
-            'Guinardia','Cerataulina'
-        ],
-        ['Ditylum', 'Ephemera', 'Coscinodiscus','Corethron','Cylindrotheca']
-    ]]
-    
-elif LEVELS ==3:
-    
-    coarse_names1 = ['Colonial', 'Unicellular']
-    groups1 = [
-        [
-            'Asterionellopsis','Chaetoceros', 'Lauderia','Pseudonitzschia', 'Eucampia',
-            'Leptocylindrus', 'Skeletonema', 'Dactyliosolen','Thalassiosira',
-            'Guinardia','Cerataulina'
-        ],
-        ['Ditylum', 'Ephemera', 'Coscinodiscus','Corethron','Cylindrotheca']
-    ]
+coarse_names1 = ['Zoop-yes', 'Zoop-No']
+groups1 = [
+    [
+        'Copepoda','Cladocera','Bosminidae','Daphnia',
+        'Cyclopoid','Harpacticoid','Calanoid'
+    ],
+    ['Debris','Bubbles']
+]
 
-    coarse_names2 = ['C-Spines','C-NoSpines','U-Spines','U-NoSpines']
-    groups2 = [
-        ['Chaetoceros', 'Lauderia','Asterionellopsis'],
-        [
-            'Pseudonitzschia', 'Leptocylindrus','Eucampia','Skeletonema',
-            'Dactyliosolen','Thalassiosira','Guinardia','Cerataulina'
-        ],
-        ['Ditylum','Corethron'],
-        ['Cylindrotheca','Ephemera', 'Coscinodiscus']
-    ]
+coarse_names2 = ['Copepoda', 'Cladocera','Debris','Bubbles']
+groups2 = [
+    ['Copepoda','Cyclopoid','Calanoid','Harpacticoid'],
+    ['Cladocera','Bosminidae','Daphnia'],
+    ['Debris'],
+    ['Bubbles']
+]
 
-    coarse_names = [coarse_names2, coarse_names1]
-    groups = [groups2, groups1]
-        
+coarse_names3 = [
+    'Cyclopoid','Calanoid','Harpacticoid',
+    'Bosminidae','Daphnia','Debris','Bubbles'
+]
+groups3 = [
+    ['Cyclopoid'],
+    ['Calanoid'],
+    ['Harpacticoid'],
+    ['Bosminidae'],
+    ['Daphnia'],
+    ['Debris'],
+    ['Bubbles'] 
+] 
+coarse_names = [coarse_names3,coarse_names2,coarse_names1]
+groups = [groups3, groups2, groups1]
 
 hier_dataset = HierImageDataset(
     base_dataset=dataset,
     groups=groups,
+    
     coarse_names = coarse_names
 )
 hier_dataset.print_dataset_details()
@@ -138,7 +101,6 @@ hier_dataset.print_dataset_details()
 dim_outputs = []
 for element in coarse_names:
     dim_outputs.insert(0,len(element))
-dim_outputs.append(FINAL_NODES)
 
 ##################### Add Image Transformations to Pipeline ####################
 
@@ -194,7 +156,7 @@ model = BCNN_Model(
 # ########################## Hyperparameter tuning ##############################
 
 # Specify Parameter Search Grid 
-TUNE = True
+TUNE = False
 
 HYPERPARAMETER_SEARCH_GRID = {
     'loss_fn': [
@@ -236,8 +198,8 @@ else:
     HYPERPARAMETERS = {
         'loss_fn': {
             'criterion': 'CrossEntropyLoss',
-            'alpha':  [[0.5,0.25,0.25],[0.2,0.4,0.4],[0.1,0.1,0.8]],
-            'thresholds': [15,20]
+            'alpha':  [1/3,1/3,1/3],#[[0.5,0.25,0.25],[0.2,0.4,0.4],[0.1,0.1,0.8]],
+            'thresholds': None#[15,20]
             }, 
         'optimizer': 'Adam', 
         'lr': 5e-4, 
@@ -263,7 +225,7 @@ labels, probs, preds, logits = model.predict(test_loader = test_loader)
 MODEL_ID = model.model_id
 MODEL_NAME = model.model_name
 LEVELS = model.levels
-run_name =  f"BCNN_ {MODEL_ID}_{MODEL_NAME}_{LEVELS}"
+run_name =  f"BCNN_ZOOP_{MODEL_ID}_{MODEL_NAME}_{LEVELS}"
 results_directory = '/home/ruizsuar/Plankton-h-classifier/Models_results'
 
 SAVE = True
