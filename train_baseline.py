@@ -1,9 +1,13 @@
 import os
 import torch
 from torchvision import transforms
+
+from hierclassifier import model_setup, samples_setup, model_setup
+
 from samples_setup import ImageDataset, merge_classes
 from model_setup import Model
 from extra_functions import set_seed
+
 
 ########################### Environment set up #################################
 
@@ -213,7 +217,7 @@ metadata = {
     'max_class_size': MAX_CLASS_SIZE,
 }
 
-SAVE = True
+SAVE = False
 
 if SAVE:
     print(f'Saving weights, predictions, and metadata. Model: {MODEL_NAME} (ID: {MODEL_ID})')
