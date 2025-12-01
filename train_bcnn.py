@@ -1,10 +1,10 @@
 import os
 import torch
 from torchvision import transforms
-from samples_setup import ImageDataset, HierImageDataset, merge_classes
-from model_setup import Model
-from extra_functions import set_seed
-from bcnn_setup import BCNN_Model, BcnnVGG
+
+from hierclassifier.extra_functions import set_seed
+from hierclassifier.samples_setup import ImageDataset, HierImageDataset, merge_classes
+from hierclassifier.bcnn_setup import BCNN_Model
 
 ########################### Environment set up #################################
 
