@@ -6,7 +6,7 @@ import numpy as np
 from torchvision import transforms
 from PIL import Image, UnidentifiedImageError
 from collections import Counter
-from extra_functions import set_seed
+from hierclassifier.extra_functions import set_seed
 import copy
 
 

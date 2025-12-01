@@ -7,7 +7,7 @@ import torchvision.models as models
 from torch.nn import functional as F
 from modular import engine
 
-from extra_functions import set_seed, extract_metrics
+from hierclassifier.extra_functions import set_seed, extract_metrics
 
 class Model:
 

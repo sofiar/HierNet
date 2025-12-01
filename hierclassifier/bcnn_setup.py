@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import time
 from datetime import datetime
 from modular import engine
-from extra_functions import set_seed, extract_metrics_hier
+from hierclassifier.extra_functions import set_seed, extract_metrics_hier
 from torchvision import models
 from itertools import product
 
