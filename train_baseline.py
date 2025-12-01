@@ -2,11 +2,9 @@ import os
 import torch
 from torchvision import transforms
 
-from hierclassifier import model_setup, samples_setup, model_setup
-
-from samples_setup import ImageDataset, merge_classes
-from model_setup import Model
-from extra_functions import set_seed
+from hierclassifier.samples_setup import ImageDataset, merge_classes
+from hierclassifier.model_setup import Model
+from hierclassifier.extra_functions import set_seed
 
 
 ########################### Environment set up #################################
