@@ -4,6 +4,7 @@ __pycache__/
 
 # Ignore results folder
 Models_results/
+pre_trained_weights/
 
 # Ignore debug notebooks
 baseline_model.ipynb
