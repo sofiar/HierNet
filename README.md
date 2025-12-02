@@ -30,7 +30,7 @@ module load python
 ```
 2. Install `Plankton-h-classifier` by : 
 ```
-pip install git+https://github.com/sofiar/Plankton-h-classifier.git
+pip install git+https://github.com/sofiar/HierNet.git
 ```
 3. Install any dependencies: Make sure required libraries are installed, including:
    * `torch`
