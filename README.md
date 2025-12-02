@@ -1,5 +1,5 @@
 
-🛑 **ATTENTION**: This branch is currently under construction.
+🛑 **ATTENTION**: This project is currently in progress.
 
 # Hierarchical Model for image classification
 This repository provides a Python library for trining and evaluating hierarchical CNN for image classification. It includes implementations of flat CNN models and branch CNN (BCNN) architectures that leverage hierarchical structures.
