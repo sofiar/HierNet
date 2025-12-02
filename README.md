@@ -28,7 +28,7 @@ For both datasets (Plankton-WHOI and Zooplankton-MNR)
 ```
 module load python
 ```
-2. Install `Plankton-h-classifier` by : 
+2. Install `hierclassifier` by : 
 ```
 pip install git+https://github.com/sofiar/HierNet.git
 ```
