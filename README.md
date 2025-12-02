@@ -42,7 +42,7 @@ pip install git+https://github.com/sofiar/Plankton-h-classifier.git
 ## 📊 Data analysis
 The hierarchical classification methods implemented in this library were applied to the following datasets:
 ### a. Plankton-WHOI
-This dataset was built from a subset of the original dataset [WHOI-Plankton dataset (2006 to 2014)](https://darchive.mblwhoilibrary.org/collections/aad045e7-1fcf-5650-82ee-c62bd604d225). It contains maure plankton images. The hierarchical models were constructed following the hierarchy structure outlined below: 
+This dataset was built from a subset of the original dataset [WHOI-Plankton dataset (2006 to 2014)](https://darchive.mblwhoilibrary.org/collections/aad045e7-1fcf-5650-82ee-c62bd604d225). It contains marine plankton images. The hierarchical models were constructed following the hierarchy structure outlined below: 
 
 <p align="center">
 <img width="480" height="270" alt="Flow chart" src="https://github.com/user-attachments/assets/9b633f49-46eb-4e3d-aff7-598aa8cb225e" />
