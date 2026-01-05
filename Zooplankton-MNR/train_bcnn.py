@@ -9,7 +9,7 @@ from hierclassifier.bcnn_setup import BCNN_Model
 ########################### Environment set up #################################
 
 # Specify GPU
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 print(torch.cuda.get_device_name(0))
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -28,6 +28,8 @@ set_seed(SEED)
 ZOOPLANKTON_CLASSES = [
      'Debris',
      'Bubbles',
+     'Exoskeleton',
+     'Fiber_Squiggly',
      'Copepoda',
      'Calanoid',
      'Cyclopoid',
@@ -35,6 +37,8 @@ ZOOPLANKTON_CLASSES = [
      'Cladocera',
      'Bosminidae',
      'Daphnia',
+     'Rotifer',
+     'Nauplius_Copepod'
 ]
 
 # 1. Base dataset
@@ -61,31 +65,41 @@ coarse_names1 = ['Zoop-yes', 'Zoop-No']
 groups1 = [
     [
         'Copepoda','Cladocera','Bosminidae','Daphnia',
-        'Cyclopoid','Harpacticoid','Calanoid'
+        'Cyclopoid','Harpacticoid','Calanoid','Rotifer',
+        'Nauplius_Copepod'
     ],
-    ['Debris','Bubbles']
+    
+    ['Debris','Bubbles','Exoskeleton','Fiber_Squiggly']
 ]
 
-coarse_names2 = ['Copepoda', 'Cladocera','Debris','Bubbles']
+coarse_names2 = [
+    'Copepoda', 'Cladocera','Rotifer','Bubbles', 'Exoskeleton',
+    'Fiber'
+]
 groups2 = [
-    ['Copepoda','Cyclopoid','Calanoid','Harpacticoid'],
+    ['Copepoda','Cyclopoid','Calanoid','Harpacticoid','Nauplius_Copepod'],
     ['Cladocera','Bosminidae','Daphnia'],
-    ['Debris'],
-    ['Bubbles']
+    ['Rotifer'],
+    ['Bubbles'],
+    ['Exoskeleton'],
+    ['Fiber_Squiggly']
 ]
 
 coarse_names3 = [
-    'Cyclopoid','Calanoid','Harpacticoid',
-    'Bosminidae','Daphnia','Debris','Bubbles'
+    'Cyclopoid','Calanoid','Harpacticoid','Nauplius_Copepod',
+    'Bosminidae','Daphnia','Rotifer','Bubbles','Exoskeleton','Fiber'
 ]
 groups3 = [
     ['Cyclopoid'],
     ['Calanoid'],
     ['Harpacticoid'],
+    ['Nauplius_Copepod'],
     ['Bosminidae'],
     ['Daphnia'],
-    ['Debris'],
-    ['Bubbles'] 
+    ['Rotifer'],
+    ['Bubbles'],
+    ['Exoskeleton'],
+    ['Fiber_Squiggly'] 
 ] 
 coarse_names = [coarse_names3,coarse_names2,coarse_names1]
 groups = [groups3, groups2, groups1]
