@@ -52,9 +52,8 @@ This dataset was built from a subset of the original dataset [WHOI-Plankton data
 The dataset used here was provided by the Ministry of Natural Resources and Forestry (Ontario, Canada) and it contains pre-labeled images of fresha water zooplankton collected using FlowCam devides. The hierarchical models were constructed following the hierarchy structure outlined below
 
 <p align="center">
-<img width="480" height="270" alt="Flow chart" src="https://github.com/user-attachments/assets/95904243-5a5e-47bf-87a1-89121ce51c6f" />
+<img width="480" height="270" alt="Flow chart" src="https://github.com/user-attachments/assets/6182850d-0cb8-444f-b0a5-bc0bdfe882b8"  />
 </p>
-
 
 ## 📄 References
 Zhu, X., & Bain, M. (2017). B-CNN: Branch Convolutional Neural Network for Hierarchical Classification. ArXiv, abs/1709.09890.
