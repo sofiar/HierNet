@@ -574,8 +574,10 @@ class BCNN_Model:
                 
                 # Calculate and accumulate accuracy metric across all batches
                 for l in range(self.levels):
+                    # create a mask for not counting missing values
+                    mask = targets[l]!=-1
                     y_pred_class = torch.argmax(torch.softmax(outputs[l], dim=1), dim=1)
-                    train_acc[l] += (y_pred_class == targets[l]).sum().item()/len(outputs[l])                
+                    train_acc[l] += (y_pred_class[mask] == targets[l][mask]).sum().item()/len(y_pred_class[mask])
                     
             train_acc = [x / len(train_loader) for x in train_acc]
             train_loss = train_loss/len(train_loader)
@@ -599,8 +601,9 @@ class BCNN_Model:
               
                     # Calculate and accumulate accuracy metric across all batches
                     for l in range(self.levels):
+                        mask = targets[l]!=-1
                         y_pred_class = torch.argmax(torch.softmax(test_pred[l], dim=1), dim=1)
-                        test_acc[l] += (y_pred_class == targets[l]).sum().item()/len(test_pred[l])                
+                        test_acc[l] += (y_pred_class[mask] == targets[l][mask]).sum().item()/len(y_pred_class[mask])
                         
                 test_acc = [x / len(val_loader) for x in test_acc]
                 test_loss = test_loss/len(val_loader)     
