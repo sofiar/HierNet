@@ -30,6 +30,7 @@ ZOOPLANKTON_CLASSES = [
      'Bubbles',
      'Exoskeleton',
      'Fiber_Squiggly',
+     'Fiber_Hairlike',
      'Copepoda',
      'Calanoid',
      'Cyclopoid',
@@ -70,7 +71,10 @@ groups1 = [
         'Nauplius_Copepod'
     ],
     
-    ['Debris','Bubbles','Exoskeleton','Fiber_Squiggly', 'Plant_Matter']
+    [
+        'Debris','Bubbles','Exoskeleton','Fiber_Squiggly', 
+        'Fiber_Hairlike','Plant_Matter'
+    ]
 ]
 
 coarse_names2 = [
@@ -83,7 +87,7 @@ groups2 = [
     ['Rotifer'],
     ['Bubbles'],
     ['Exoskeleton'],
-    ['Fiber_Squiggly'],
+    ['Fiber_Squiggly','Fiber_Hairlike'],
     ['Plant_Matter']
 ]
 
@@ -102,7 +106,7 @@ groups3 = [
     ['Rotifer'],
     ['Bubbles'],
     ['Exoskeleton'],
-    ['Fiber_Squiggly'],
+    ['Fiber_Squiggly','Fiber_Hairlike'],
     ['Plant_Matter'] 
 ] 
 coarse_names = [coarse_names3,coarse_names2,coarse_names1]
