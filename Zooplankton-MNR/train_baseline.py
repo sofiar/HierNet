@@ -83,14 +83,46 @@ elif LEVEL=='level2': #(Final nodes)
         'Bubbles',
         'Exoskeleton',
         'Fiber_Squiggly',
+        'Fiber_Hairlike',
         'Calanoid',
         'Cyclopoid',
         'Harpacticoid',
         'Bosminidae',
+        'Bosmina_1',
+        'Eubosmina',        
         'Daphnia',
         'Nauplius_Copepod',
-        'Rotifer'
+        'Rotifer',
+        'Plant_Matter'
     ]
+    
+    classes_to_merge_list = [
+        ['Bubbles'],
+        ['Exoskeleton'],
+        ['Fiber_Squiggly','Fiber_Hairlike'],
+        ['Calanoid'],
+        ['Cyclopoid'],
+        ['Harpacticoid'],
+        ['Bosminidae', 'Bosmina_1', 'Eubosmina'],      
+        ['Daphnia'],
+        ['Nauplius_Copepod'],
+        ['Rotifer'],
+        ['Plant_Matter']
+          ]
+    new_names_list = [
+        'Bubbles',
+        'Exoskeleton',
+        'Fibers', 
+        'Calanoid', 
+        'Cyclopoid',
+        'Harpacticoid', 
+        'Bosmina', 
+        'Daphnia', 
+        'Nauplius_Copepod', 
+        'Rotifer',
+        'Plant_Matter'
+        ]
+    
     
 else: 
     raise ValueError(
@@ -117,7 +149,7 @@ dataset = ImageDataset(
 
 # 3. Merge categories  
 
-if LEVEL in ['Zoop-YN','level1']:
+if LEVEL in ['Zoop-YN','level1','level2']:
         
     # Define final dataset
     dataset =  merge_classes(
@@ -227,7 +259,7 @@ metadata = {
     'max_class_size': MAX_CLASS_SIZE,
 }
 
-SAVE = False
+SAVE = True
 
 if SAVE:
     print(f'Saving weights, predictions, and metadata. Model: {MODEL_NAME} (ID: {MODEL_ID})')
