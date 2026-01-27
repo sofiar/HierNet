@@ -38,7 +38,8 @@ ZOOPLANKTON_CLASSES = [
      'Bosminidae',
      'Daphnia',
      'Rotifer',
-     'Nauplius_Copepod'
+     'Nauplius_Copepod',
+     'Plant_Matter'
 ]
 
 # 1. Base dataset
@@ -69,12 +70,12 @@ groups1 = [
         'Nauplius_Copepod'
     ],
     
-    ['Debris','Bubbles','Exoskeleton','Fiber_Squiggly']
+    ['Debris','Bubbles','Exoskeleton','Fiber_Squiggly', 'Plant_Matter']
 ]
 
 coarse_names2 = [
     'Copepoda', 'Cladocera','Rotifer','Bubbles', 'Exoskeleton',
-    'Fiber'
+    'Fiber', 'Plant_Matter'
 ]
 groups2 = [
     ['Copepoda','Cyclopoid','Calanoid','Harpacticoid','Nauplius_Copepod'],
@@ -82,12 +83,14 @@ groups2 = [
     ['Rotifer'],
     ['Bubbles'],
     ['Exoskeleton'],
-    ['Fiber_Squiggly']
+    ['Fiber_Squiggly'],
+    ['Plant_Matter']
 ]
 
 coarse_names3 = [
     'Cyclopoid','Calanoid','Harpacticoid','Nauplius_Copepod',
-    'Bosminidae','Daphnia','Rotifer','Bubbles','Exoskeleton','Fiber'
+    'Bosminidae','Daphnia','Rotifer','Bubbles','Exoskeleton','Fiber',
+    'Plant_Matter'
 ]
 groups3 = [
     ['Cyclopoid'],
@@ -99,7 +102,8 @@ groups3 = [
     ['Rotifer'],
     ['Bubbles'],
     ['Exoskeleton'],
-    ['Fiber_Squiggly'] 
+    ['Fiber_Squiggly'],
+    ['Plant_Matter'] 
 ] 
 coarse_names = [coarse_names3,coarse_names2,coarse_names1]
 groups = [groups3, groups2, groups1]
@@ -213,7 +217,7 @@ else:
         'loss_fn': {
             'criterion': 'CrossEntropyLoss',
             'alpha':  [1/3,1/3,1/3],#[[0.5,0.25,0.25],[0.2,0.4,0.4],[0.1,0.1,0.8]],
-            'thresholds': None#[15,20]
+            'thresholds': None#[10,20]
             }, 
         'optimizer': 'Adam', 
         'lr': 5e-4, 
