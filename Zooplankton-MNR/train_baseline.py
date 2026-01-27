@@ -34,6 +34,7 @@ ZOOPLANKTON_CLASSES = [
      'Bubbles',
      'Exoskeleton',
      'Fiber_Squiggly',
+     'Fiber_Hairlike',
      'Calanoid',
      'Cyclopoid',
      'Cladocera',
@@ -59,7 +60,7 @@ if LEVEL == 'Zoop-YN': # (Zooplankton Yes - Zooplankton No)
             'Rotifer',
             'Nauplius_Copepod'            
         ],
-        ['Bubbles','Debris','Exoskeleton','Fiber_Squiggly']
+        ['Bubbles','Debris','Exoskeleton','Fiber_Squiggly','Fiber_Hairlike']
     ]
     new_names_list = ['Zoop-Y','Zoop-N' ]
 
@@ -71,7 +72,7 @@ elif LEVEL=='level1': # (Cladocera - Copepoda - Rotifer - Bubbles - Exoskeleton 
         ['Rotifer'],
         ['Bubbles'],
         ['Exoskeleton'],
-        ['Fiber_Squiggly']
+        ['Fiber_Squiggly','Fiber_Hairlike']
     ]
     new_names_list = ['Cladocera','Copepoda','Rotifer','Bubbles','Exoskeleton','Fiber']
     
