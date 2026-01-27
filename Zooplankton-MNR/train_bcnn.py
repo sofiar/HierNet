@@ -37,6 +37,8 @@ ZOOPLANKTON_CLASSES = [
      'Harpacticoid',
      'Cladocera',
      'Bosminidae',
+     'Bosmina_1',
+     'Eubosmina',
      'Daphnia',
      'Rotifer',
      'Nauplius_Copepod',
@@ -66,9 +68,8 @@ LEVELS = 3
 coarse_names1 = ['Zoop-yes', 'Zoop-No']
 groups1 = [
     [
-        'Copepoda','Cladocera','Bosminidae','Daphnia',
-        'Cyclopoid','Harpacticoid','Calanoid','Rotifer',
-        'Nauplius_Copepod'
+        'Copepoda','Cladocera','Bosminidae', 'Bosmina_1','Eubosmina','Daphnia',
+        'Cyclopoid','Harpacticoid','Calanoid','Rotifer','Nauplius_Copepod'
     ],
     
     [
@@ -83,7 +84,7 @@ coarse_names2 = [
 ]
 groups2 = [
     ['Copepoda','Cyclopoid','Calanoid','Harpacticoid','Nauplius_Copepod'],
-    ['Cladocera','Bosminidae','Daphnia'],
+    ['Cladocera','Bosminidae','Bosmina_1','Eubosmina','Daphnia'],
     ['Rotifer'],
     ['Bubbles'],
     ['Exoskeleton'],
@@ -93,7 +94,7 @@ groups2 = [
 
 coarse_names3 = [
     'Cyclopoid','Calanoid','Harpacticoid','Nauplius_Copepod',
-    'Bosminidae','Daphnia','Rotifer','Bubbles','Exoskeleton','Fiber',
+    'Bosmina','Daphnia','Rotifer','Bubbles','Exoskeleton','Fiber',
     'Plant_Matter'
 ]
 groups3 = [
@@ -101,7 +102,7 @@ groups3 = [
     ['Calanoid'],
     ['Harpacticoid'],
     ['Nauplius_Copepod'],
-    ['Bosminidae'],
+    ['Bosminidae','Bosmina_1','Eubosmina'],
     ['Daphnia'],
     ['Rotifer'],
     ['Bubbles'],
