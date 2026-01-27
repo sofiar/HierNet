@@ -44,6 +44,7 @@ ZOOPLANKTON_CLASSES = [
      'Daphnia',
      'Rotifer',
      'Nauplius_Copepod',
+     'Plant_Matter'
     ]
 
 if LEVEL == 'Zoop-YN': # (Zooplankton Yes - Zooplankton No)
@@ -60,11 +61,14 @@ if LEVEL == 'Zoop-YN': # (Zooplankton Yes - Zooplankton No)
             'Rotifer',
             'Nauplius_Copepod'            
         ],
-        ['Bubbles','Debris','Exoskeleton','Fiber_Squiggly','Fiber_Hairlike']
+        [
+            'Bubbles','Debris','Exoskeleton','Fiber_Squiggly',
+            'Fiber_Hairlike','Plant_Matter'
+        ]
     ]
     new_names_list = ['Zoop-Y','Zoop-N' ]
 
-elif LEVEL=='level1': # (Cladocera - Copepoda - Rotifer - Bubbles - Exoskeleton - Fiber)
+elif LEVEL=='level1': # (Cladocera - Copepoda - Rotifer - Bubbles - Exoskeleton - Fiber - Plant Matter)
     
     classes_to_merge_list = [
         ['Cladocera','Bosminidae','Daphnia'],
@@ -72,9 +76,13 @@ elif LEVEL=='level1': # (Cladocera - Copepoda - Rotifer - Bubbles - Exoskeleton 
         ['Rotifer'],
         ['Bubbles'],
         ['Exoskeleton'],
-        ['Fiber_Squiggly','Fiber_Hairlike']
+        ['Fiber_Squiggly','Fiber_Hairlike'],
+        ['Plant_Matter']
     ]
-    new_names_list = ['Cladocera','Copepoda','Rotifer','Bubbles','Exoskeleton','Fiber']
+    new_names_list = [
+        'Cladocera','Copepoda','Rotifer','Bubbles','Exoskeleton',
+        'Fiber','Plant_Matter'
+    ]
     
     
 elif LEVEL=='level2': #(Final nodes)    
