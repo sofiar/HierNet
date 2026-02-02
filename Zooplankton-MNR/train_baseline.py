@@ -40,6 +40,7 @@ ZOOPLANKTON_CLASSES = [
      'Cladocera',
      'Copepoda',
      'Harpacticoid',
+     'Holopedium',
      'Bosminidae',
      'Bosmina_1',
      'Eubosmina',
@@ -61,6 +62,7 @@ if LEVEL == 'Zoop-YN': # (Zooplankton Yes - Zooplankton No)
             'Copepoda',
             'Cyclopoid',
             'Harpacticoid',
+            'Holopedium',
             'Calanoid',
             'Rotifer',
             'Nauplius_Copepod'            
@@ -75,7 +77,7 @@ if LEVEL == 'Zoop-YN': # (Zooplankton Yes - Zooplankton No)
 elif LEVEL=='level1': # (Cladocera - Copepoda - Rotifer - Bubbles - Exoskeleton - Fiber - Plant Matter)
     
     classes_to_merge_list = [
-        ['Cladocera','Bosminidae','Bosmina_1','Eubosmina','Daphnia'],
+        ['Cladocera','Bosminidae','Bosmina_1','Eubosmina','Daphnia','Holopedium'],
         ['Copepoda','Cyclopoid','Harpacticoid','Calanoid','Nauplius_Copepod'],
         ['Rotifer'],
         ['Bubbles'],
@@ -100,6 +102,7 @@ elif LEVEL=='level2': #(Final nodes)
         'Calanoid',
         'Cyclopoid',
         'Harpacticoid',
+        'Holopedium',
         'Bosminidae',
         'Bosmina_1',
         'Eubosmina',        
@@ -116,6 +119,7 @@ elif LEVEL=='level2': #(Final nodes)
         ['Calanoid'],
         ['Cyclopoid'],
         ['Harpacticoid'],
+        ['Holopedium'],
         ['Bosminidae', 'Bosmina_1', 'Eubosmina'],      
         ['Daphnia'],
         ['Nauplius_Copepod'],
@@ -129,6 +133,7 @@ elif LEVEL=='level2': #(Final nodes)
         'Calanoid', 
         'Cyclopoid',
         'Harpacticoid', 
+        'Holopedium',
         'Bosmina', 
         'Daphnia', 
         'Nauplius_Copepod', 
