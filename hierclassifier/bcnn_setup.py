@@ -393,6 +393,10 @@ class BCNN_Model:
             
         Args:
             weights_directory (str): Path to the directory containing pre-trained weigths.
+            weights_names (str, optional): Name of pre-trained weights. Default to:  
+                                           *densenet121-a639ec97.pth for Densenet121.
+                                           *resnet50-0676ba61.pth for Resnet50.
+                                           *vgg16-397923af.pth for VGG16.     
             dim_outputs (list): Number of output nodes for each level of hierarchy. 
             model_name (str, optional): Model to use ('vgg16' of 'resnet50'). Defaults to 'vgg16'
             device (torch.device, optional): Computation device. Defaults to None.
@@ -415,6 +419,7 @@ class BCNN_Model:
     def __init__(
             self, weights_directory,dim_outputs, 
             model_name: str = 'vgg16',device: torch.device = None, 
+            weights_names:str = None,
             seed: int = 666,levels:int  = 2
         ):
         
@@ -426,23 +431,33 @@ class BCNN_Model:
         self.device = device
         self.seed = seed
         self.levels = levels
+        self.weighs_names = weights_names
         
         set_seed(self.seed)
 
         # Load model and weights
+                       
         if self.model_name == 'vgg16':
+            if self.weighs_names is None: 
+               self.weighs_names = '/vgg16-397923af.pth'
             self.model = BcnnVGG(
                 dim_outputs=self.dim_outputs,
                 levels = self.levels,
                 weights_directory = self.weights_directory
             )
+        
         elif self.model_name == 'resnet50':
+            if self.weighs_names is None: 
+               self.weighs_names = '/resnet50-0676ba61.pth'
             self.model = BcnnResnet50(
                 dim_outputs=self.dim_outputs,
                 levels = self.levels,
                 weights_directory= self.weights_directory
             )
+            
         elif self.model_name == 'densenet121':
+            if self.weighs_names is None: 
+               self.weighs_names = '/densenet121-a639ec97.pth'
             self.model = BcnnDensenet121(
                 dim_outputs=self.dim_outputs,
                 levels = self.levels,
