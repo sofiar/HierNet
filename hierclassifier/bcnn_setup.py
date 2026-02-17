@@ -28,16 +28,17 @@ class BcnnVGG(nn.Module):
         dim_outputs (list): Number of output nodes for each level of hierarchy.
         levels (int,optional): Number of levels in the hierarchy. Options are 2 or 3.
                                Defaults to 2.
-        weights_directory (str): Path to the directory containing pre-trained weigths.    
+        weights_directory (str): Path to the directory containing pre-trained weigths. 
+        weights_names (str): file name with pre-trained weights. Default: to vgg16-397923af.pth
+               
+    """    
     
-    """
-    
-    
-    def __init__(self, dim_outputs:list , levels: int =2, weights_directory = None):
+    def __init__(self, dim_outputs:list , levels: int =2, weights_directory = None,
+                 weights_names = '/vgg16-397923af.pth'):
         super().__init__()
         
         self.levels = levels
-        self.weights_path = weights_directory + '/vgg16-397923af.pth'
+        self.weights_path = weights_directory + weights_names
         
         if self.levels not in [2,3]:
             raise ValueError('Error: Level must be 2 or 3.')
@@ -125,14 +126,17 @@ class BcnnResnet50(nn.Module):
         dim_outputs (list): Number of output nodes for each level of hierarchy.
         levels (int,optional): Number of levels in the hierarchy. Options are 2 or 3.
                                Defaults to 2.
-        weights_directory (str): Path to the directory containing pre-trained weigths.    
+        weights_directory (str): Path to the directory containing pre-trained weigths.  
+        weights_names (str): file name with pre-trained weights. Default: to resnet50-0676ba61.pth
+  
     
     """
-    def __init__(self, dim_outputs:list , levels: int = 2, weights_directory = None):
+    def __init__(self, dim_outputs:list , levels: int = 2, weights_directory = None,
+                 weights_names = '/resnet50-0676ba61.pth'):
         super().__init__()
             
         self.levels = levels
-        self.weights_path = weights_directory + '/resnet50-0676ba61.pth'
+        self.weights_path = weights_directory + weights_names
         base = models.resnet50(weights= None)
         
         state_dict = torch.load(self.weights_path, map_location = 'cpu')
@@ -208,16 +212,18 @@ class BcnnDensenet121(nn.Module):
         levels (int,optional): Number of levels in the hierarchy. Options are 2, 3 or 4.
                                Defaults to 2.
         weights_directory (str): Path to the directory containing pre-trained weigths.    
+        weights_names (str): file name with pre-trained weights. Default: to densenet121-a639ec97.pth
     
     """
-    def __init__(self, dim_outputs:list , levels: int=2, weights_directory = None):
+    def __init__(self, dim_outputs:list , levels: int=2, weights_directory = None,
+                 weights_names = '/densenet121-a639ec97.pth'):
         super().__init__()
             
         self.levels = levels
         base = models.densenet121(weights = None)
         
         if weights_directory is not None:
-            weights_path = weights_directory + '/densenet121-a639ec97.pth' 
+            weights_path = weights_directory + weights_names 
             state_dict = torch.load(weights_path, map_location = 'cpu')
             base.load_state_dict(state_dict, strict=False)
         
