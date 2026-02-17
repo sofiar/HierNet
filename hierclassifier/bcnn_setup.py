@@ -419,7 +419,7 @@ class BCNN_Model:
     def __init__(
             self, weights_directory,dim_outputs, 
             model_name: str = 'vgg16',device: torch.device = None, 
-            weights_names:str = None,
+            weights_names: str = None,
             seed: int = 666,levels:int  = 2
         ):
         
@@ -431,37 +431,40 @@ class BCNN_Model:
         self.device = device
         self.seed = seed
         self.levels = levels
-        self.weighs_names = weights_names
-        
+        self.weights_names = weights_names
+                
         set_seed(self.seed)
 
         # Load model and weights
                        
         if self.model_name == 'vgg16':
-            if self.weighs_names is None: 
-               self.weighs_names = '/vgg16-397923af.pth'
+            if self.weights_names is None: 
+               self.weights_names = '/vgg16-397923af.pth'
             self.model = BcnnVGG(
                 dim_outputs=self.dim_outputs,
                 levels = self.levels,
-                weights_directory = self.weights_directory
+                weights_directory = self.weights_directory,
+                weights_names = weights_names
             )
         
         elif self.model_name == 'resnet50':
-            if self.weighs_names is None: 
-               self.weighs_names = '/resnet50-0676ba61.pth'
+            if self.weights_names is None: 
+               self.weights_names = '/resnet50-0676ba61.pth'
             self.model = BcnnResnet50(
                 dim_outputs=self.dim_outputs,
                 levels = self.levels,
-                weights_directory= self.weights_directory
+                weights_directory= self.weights_directory,
+                weights_names = weights_names
             )
             
         elif self.model_name == 'densenet121':
-            if self.weighs_names is None: 
-               self.weighs_names = '/densenet121-a639ec97.pth'
+            if self.weights_names is None: 
+               self.weights_names = '/densenet121-a639ec97.pth'
             self.model = BcnnDensenet121(
                 dim_outputs=self.dim_outputs,
                 levels = self.levels,
-                weights_directory= self.weights_directory
+                weights_directory= self.weights_directory,
+                weights_names = weights_names
             )    
         else:
             raise ValueError('Unsupported model. Select one of vgg16, resnet50 or densenet121.')  
