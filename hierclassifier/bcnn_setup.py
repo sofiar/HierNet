@@ -444,7 +444,7 @@ class BCNN_Model:
                 dim_outputs=self.dim_outputs,
                 levels = self.levels,
                 weights_directory = self.weights_directory,
-                weights_names = weights_names
+                weights_names = self.weights_names
             )
         
         elif self.model_name == 'resnet50':
@@ -454,7 +454,7 @@ class BCNN_Model:
                 dim_outputs=self.dim_outputs,
                 levels = self.levels,
                 weights_directory= self.weights_directory,
-                weights_names = weights_names
+                weights_names = self.weights_names
             )
             
         elif self.model_name == 'densenet121':
@@ -464,7 +464,7 @@ class BCNN_Model:
                 dim_outputs=self.dim_outputs,
                 levels = self.levels,
                 weights_directory= self.weights_directory,
-                weights_names = weights_names
+                weights_names = self.weights_names
             )    
         else:
             raise ValueError('Unsupported model. Select one of vgg16, resnet50 or densenet121.')  
