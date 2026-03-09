@@ -9,7 +9,7 @@ from hierclassifier.bcnn_setup import BCNN_Model
 ########################### Environment set up #################################
 
 # Specify GPU
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 print(torch.cuda.get_device_name(0))
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -26,6 +26,7 @@ set_seed(SEED)
 ############################# Data preparation #################################
 
 ZOOPLANKTON_CLASSES = [
+     'Asplanchna',
      'Debris',
      'Bubbles',
      'Exoskeleton',
@@ -33,17 +34,21 @@ ZOOPLANKTON_CLASSES = [
      'Fiber_Hairlike',
      'Copepoda',
      'Calanoid',
+     'Cladocera',
      'Cyclopoid',
+     'Chydorus',
      'Harpacticoid',
      'Holopedium',
-     'Cladocera',
+     'Kellicottia',
+     'Conochilus',      
      'Bosminidae',
      'Bosmina_1',
      'Eubosmina',
      'Daphnia',
      'Rotifer',
      'Nauplius_Copepod',
-     'Plant_Matter'
+     'Plant_Matter',
+     'Trichocerca'
 ]
 
 # 1. Base dataset
@@ -71,7 +76,9 @@ groups1 = [
     [
         'Copepoda','Cladocera','Bosminidae', 'Bosmina_1','Eubosmina','Daphnia',
         'Cyclopoid','Harpacticoid','Holopedium','Calanoid','Rotifer',
-        'Nauplius_Copepod'
+        'Nauplius_Copepod','Trichocerca','Asplanchna', 'Kellicottia',
+        'Conochilus', 'Chydorus'
+
     ],
     
     [
@@ -86,8 +93,8 @@ coarse_names2 = [
 ]
 groups2 = [
     ['Copepoda','Cyclopoid','Calanoid','Harpacticoid','Nauplius_Copepod'],
-    ['Cladocera','Bosminidae','Bosmina_1','Eubosmina','Daphnia','Holopedium'],
-    ['Rotifer'],
+    ['Cladocera','Bosminidae','Bosmina_1','Eubosmina','Daphnia','Holopedium','Chydorus'],
+    ['Rotifer','Trichocerca','Asplanchna','Conochilus','Kellicottia'],
     ['Bubbles'],
     ['Exoskeleton'],
     ['Fiber_Squiggly','Fiber_Hairlike'],
@@ -96,8 +103,9 @@ groups2 = [
 
 coarse_names3 = [
     'Cyclopoid','Calanoid','Harpacticoid','Nauplius_Copepod',
-    'Bosmina','Holopedium','Daphnia','Rotifer','Bubbles','Exoskeleton','Fiber',
-    'Plant_Matter'
+    'Bosmina','Holopedium','Daphnia','Chydorus',
+    'Kellicottia','Conochilus','Asplanchna','Trichocerca',
+    'Bubbles','Exoskeleton','Fiber','Plant_Matter'
 ]
 groups3 = [
     ['Cyclopoid'],
@@ -107,7 +115,11 @@ groups3 = [
     ['Bosminidae','Bosmina_1','Eubosmina'],
     ['Holopedium'],
     ['Daphnia'],
-    ['Rotifer'],
+    ['Chydorus'],
+    ['Kellicottia'],
+    ['Conochilus'],
+    ['Asplanchna'],
+    ['Trichocerca'],
     ['Bubbles'],
     ['Exoskeleton'],
     ['Fiber_Squiggly','Fiber_Hairlike'],
