@@ -94,6 +94,65 @@ def extract_metrics_hier(metrics_dict):
 
     return cleaned
 
+def parent_children_dicts(hierarchy_names, hierarchy_groups):
+    
+    """
+     Returns two lists with parent-child and child-parent dictionaries
+
+    Args:
+        hierarchy_names (list): A list of string lists, where each inner list defines the names of the groups at a given
+                            coarser level. The order of the list is important: the fist corresponds to the finest grouping
+                            and the last to the broadest. 
+        hierarchy_groups (list): A list of string lists, where each inner list defines how the final nodes are grouped at a given
+                       coarser level. The order of the list is important: the first corresponds to the finest
+                       grouping, and the last to the broadest. 
+        
+    Output: 
+        parent_maps : list[dict[str, str]]
+            parent_maps[i]: child_label_at_level_(i+1) -> parent_label_at_level_i.
+        children_groups : list[dict[str, list[str]]]
+            children_groups[i][parent_label_at_level_i] -> list of child labels at level i+1.
+   
+    """
+    
+    levels = len(hierarchy_names)
+        
+    ALL_BOSMINA = ['Bosminidae', 'Bosmina_1', 'Eubosmina']
+    ALL_FIBER = ['Fiber_Squiggly','Fiber_Hairlike']
+
+    parents_maps = []
+    children_groups = []
+
+    for l in range(levels-1,0,-1):
+        dict_p = {}
+        dict_c = {}
+        for parent, children in zip(hierarchy_names[l],hierarchy_groups[l]):
+            
+            valid_children_groups = hierarchy_names[l-1]
+                    
+            clean_children = []
+            for c in children:
+                if(c in ALL_BOSMINA):
+                    c = 'Bosmina'
+                elif(c in ALL_FIBER):
+                    c = 'Fiber'
+                clean_children.append(c)
+                dict_p[c] = parent
+            clean_children_filtered = [
+                x for x in clean_children if x in valid_children_groups
+            ]
+            dict_c[parent] = sorted(set(clean_children_filtered))
+            
+        # save parents
+        keys_to_keep = set(valid_children_groups)
+        filtered_dict_p = {k: v for k, v in dict_p.items() if k in keys_to_keep}   
+        parents_maps.append(filtered_dict_p)
+        
+        # save children 
+        children_groups.append(dict_c)  
+        
+    return parents_maps, children_groups
+    
 
 def enforce_hierarchical_consistency(
     all_levels_pred, 
