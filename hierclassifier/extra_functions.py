@@ -206,20 +206,20 @@ def enforce_hierarchical_consistency(
 
             if parent_pred != expected_parent:
                 # Compare confidence of expected vs current parent
-                conf_expected_parent = parent_conf.get(expected_parent, 0.0)
-                conf_current_parent = parent_conf.get(parent_pred, 0.0)
+                # conf_expected_parent = parent_conf.get(expected_parent, 0.0)
+                # conf_current_parent = parent_conf.get(parent_pred, 0.0)
 
-                if conf_expected_parent >= conf_current_parent:
-                    # Trust child → fix parent
-                    preds[parent_level] = expected_parent
-                else:
-                    # Trust parent → adjust child to best child under that parent
-                    possible_children = parent_to_children.get(parent_pred, [])
-                    if possible_children:
-                        best_child = max(
-                            possible_children,
-                            key=lambda c: child_conf.get(c, 0.0)
-                        )
-                        preds[child_level] = best_child
+                # if conf_expected_parent >= conf_current_parent:
+                #     # Trust child → fix parent
+                #     preds[parent_level] = expected_parent
+                # else:
+                #     # Trust parent → adjust child to best child under that parent
+                possible_children = parent_to_children.get(parent_pred, [])
+                if possible_children:
+                    best_child = max(
+                        possible_children,
+                        key=lambda c: child_conf.get(c, 0.0)
+                    )
+                    preds[child_level] = best_child
 
     return preds
