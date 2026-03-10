@@ -484,7 +484,8 @@ class HierImageDataset(Dataset):
         self.seed = base_dataset.seed
         self.image_resolution =  base_dataset.image_resolution
         self.image_paths = base_dataset.image_paths
-        
+        self.groups = groups
+        self.coarse_names = coarse_names
         
         if len(coarse_names)!=len(groups):
             raise ValueError('Error: The length of coarse names and groups must be the same')
