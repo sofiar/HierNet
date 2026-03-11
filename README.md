@@ -28,11 +28,15 @@ For both datasets (Plankton-WHOI and Zooplankton-MNR)
 ```
 module load python
 ```
-2. Install `hierclassifier` by : 
+2. Install `InformedML-CV` by : 
+```
+pip install git+https://github.com/sofiar/InformedML-CV.git
+```
+3. Install `hierclassifier` by : 
 ```
 pip install git+https://github.com/sofiar/HierNet.git
 ```
-3. Install any dependencies: Make sure required libraries are installed, including:
+4. Install any dependencies: Make sure required libraries are installed, including:
    * `torch`
    * `seaborn`
    * `sklearn`
