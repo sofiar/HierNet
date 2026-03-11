@@ -11,9 +11,10 @@ This repository provides a Python library for trining and evaluating hierarchica
 for loading and processing images for training.
 * `model_setup.py`: Defines and constumizes the PyTorch `Model` for training and running inference on flat CNN models using DenseNet121 or ResNet50 architectures.
 * `bcnn_setup.py`: Defines and costimizes the PyTorch `BCNN_Model` for training and runnig inference on Branch convolutional neural networks based on VGG16, ResNet50 or DenseNet121 architectures.
-* `extra_funcitions.py`: Contains utility function for environment set-up.  
+* `extra_funcitions.py`: Contains utility function for environment set-up and post-processing routines.  
 
 **Data analysis**:
+
 For both datasets (Plankton-WHOI and Zooplankton-MNR)
 * `summarize_data.ipynb`: Explores and visualizes the dataset.
 * `train_baseline.py`:  Trains a baseline CNN with final-node class labels. 
@@ -21,6 +22,8 @@ For both datasets (Plankton-WHOI and Zooplankton-MNR)
 * `get_baseline_results.ipynb`: Examines results from flat CNN models.
 * `get_bcnn_results.ipynb`: Examines results from BCNN models.
 
+For Zooplankton-MNR dataset:
+* `pre_process_data.ipynb`: Pre-process samples by cropping mosaics into individual images and saving them in the corresponding directories.
 
 ## 🔧 Instalation and setup
 
