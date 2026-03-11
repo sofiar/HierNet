@@ -13,7 +13,7 @@ for loading and processing images for training.
 * `bcnn_setup.py`: Defines and costimizes the PyTorch `BCNN_Model` for training and runnig inference on Branch convolutional neural networks based on VGG16, ResNet50 or DenseNet121 architectures.
 * `extra_funcitions.py`: Contains utility function for environment set-up and post-processing routines.  
 
-**Data analysis**:
+**Datasets**:
 
 For both datasets (Plankton-WHOI and Zooplankton-MNR)
 * `summarize_data.ipynb`: Explores and visualizes the dataset.
