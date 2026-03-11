@@ -13,7 +13,7 @@ for loading and processing images for training.
 * `bcnn_setup.py`: Defines and costimizes the PyTorch `BCNN_Model` for training and runnig inference on Branch convolutional neural networks based on VGG16, ResNet50 or DenseNet121 architectures.
 * `extra_funcitions.py`: Contains utility function for environment set-up and post-processing routines.  
 
-**Datasets**:
+**Data analysis**:
 
 For both datasets (Plankton-WHOI and Zooplankton-MNR)
 * `summarize_data.ipynb`: Explores and visualizes the dataset.
@@ -46,7 +46,7 @@ pip install git+https://github.com/sofiar/HierNet.git
    * `numpy`
 
 
-## 📊 Data analysis
+## 📊 Datasets
 The hierarchical classification methods implemented in this library were applied to the following datasets:
 ### a. Plankton-WHOI
 This dataset was built from a subset of the original dataset [WHOI-Plankton dataset (2006 to 2014)](https://darchive.mblwhoilibrary.org/collections/aad045e7-1fcf-5650-82ee-c62bd604d225). It contains marine plankton images. The hierarchical models were constructed following the hierarchy structure outlined below: 
