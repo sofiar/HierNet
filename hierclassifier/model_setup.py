@@ -272,7 +272,7 @@ class Model:
             )
 
             # Get predictions and score on validation set
-            labels, _, preds = current_model.predict(val_loader)
+            labels, _, preds, _ = current_model.predict(val_loader)
             score = scoring_fn(labels.cpu(), preds.cpu())
 
             elapsed_iter = time.time() - start_iter
