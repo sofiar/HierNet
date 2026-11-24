@@ -213,15 +213,18 @@ HYPERPARAMETER_SEARCH_GRID = {
     ],
 }
 
-
 def accuracy_fn(y_true, y_pred):
-    
-    """ Defines accuracy measure as the percentage of samples well classified"""
-    
-    correct = torch.eq(y_true, y_pred).sum().item()
-    acc = (correct / len(y_pred)) * 100
-    return acc
 
+    """
+    Percentage of correctly classified samples, ignoring samples with no label at this level (-1).
+    gridsearch averages this score over the levels.
+    """
+
+    mask = y_true != -1
+    if mask.sum() == 0:
+        return 0.0
+    correct = torch.eq(y_true[mask], y_pred[mask]).sum().item()
+    return (correct / mask.sum().item()) * 100
 
 if TUNE:
     
