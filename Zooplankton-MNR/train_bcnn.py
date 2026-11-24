@@ -17,7 +17,7 @@ print(f'Using device: {device}')
 
 # Specify paths
 data_directory = '/data/Hier-Zooplankton'
-data_subdirectories = ['IssacData']
+data_subdirectories = ['IssacData','Quetico_training_data']
 
 # Specify other environment variables
 SEED = 666
